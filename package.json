@@ -26,7 +26,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.8.3",
     "@types/node": "^18.19.9",
-    "electron": "^34.2.0",
+    "electron": "^35.0.0-beta.7",
     "esbuild": "^0.25.0",
     "tsx": "^3.12.10",
     "typescript": "^5.3.3",
