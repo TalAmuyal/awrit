@@ -1,5 +1,7 @@
 import { EscapeType, KeyEvent, MouseEvent, MouseButton, type InputEvent } from 'awrit-native';
+import type { BrowserWindow } from 'electron';
 import { focusedWindow } from './windows';
+import { placeCursor } from './tty/output';
 
 function handleModifiers(modifiers: number): Array<'shift' | 'alt' | 'ctrl'> {
   const result: Array<'shift' | 'alt' | 'ctrl'> = [];
@@ -42,6 +44,32 @@ const SHIFT_MAP = {
   '`': '~',
 };
 
+async function guessIMEPositionInWindow(win: BrowserWindow) {
+  let bounds = { x: 0, y: 0 };
+  try {
+    bounds = await win.webContents.executeJavaScript(
+      `(() => {
+        const rect = document.activeElement?.getBoundingClientRect();
+        return rect && { x: rect.left, y: rect.top }
+      })()`,
+    );
+  } catch (e) {
+    return bounds;
+  }
+  if (!bounds) {
+    return bounds;
+  }
+
+  const [contentWidth, contentHeight] = win.getContentSize();
+  const [ttyWidth, ttyHeight] = process.stdout.getWindowSize();
+
+  // Calculate position relative to window content size
+  const x = Math.ceil((bounds.x / contentWidth) * ttyWidth);
+  const y = Math.ceil((bounds.y / contentHeight) * ttyHeight);
+
+  return { x, y };
+}
+
 export function handleInput(evt: InputEvent) {
   if (evt.type !== EscapeType.Key && evt.type !== EscapeType.Mouse) return;
 
@@ -49,6 +77,12 @@ export function handleInput(evt: InputEvent) {
   if (!win) {
     return;
   }
+
+  guessIMEPositionInWindow(win).then((position) => {
+    if (position) {
+      placeCursor(position);
+    }
+  });
 
   switch (evt.type) {
     case EscapeType.Key: {
