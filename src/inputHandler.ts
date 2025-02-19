@@ -16,6 +16,8 @@ function handleMouseButton(buttons: number) {
   return;
 }
 
+const WHEEL_DELTA = 100;
+
 const SHIFT_MAP = {
   '0': ')',
   '1': '!',
@@ -77,6 +79,24 @@ export function handleInput(evt: InputEvent) {
     }
 
     case EscapeType.Mouse: {
+      const isWheelUp = evt.buttons & MouseButton.WheelUp;
+      if (isWheelUp || evt.buttons & MouseButton.WheelDown) {
+        win.webContents.sendInputEvent({
+          type: 'mouseWheel',
+          wheelTicksY: isWheelUp ? 1 : -1,
+          wheelTicksX: 0,
+          deltaX: 0,
+          deltaY: isWheelUp ? WHEEL_DELTA : -WHEEL_DELTA,
+          modifiers: handleModifiers(evt.modfiers),
+          x: evt.x || 0,
+          y: evt.y || 0,
+          accelerationRatioY: 0.5,
+          hasPreciseScrollingDeltas: false,
+          canScroll: true,
+        });
+        break;
+      }
+
       const eventTypeMap = {
         [MouseEvent.Down]: 'mouseDown',
         [MouseEvent.Up]: 'mouseUp',
@@ -85,7 +105,9 @@ export function handleInput(evt: InputEvent) {
 
       if (!eventTypeMap) break;
       const button = handleMouseButton(evt.buttons);
-      if (!button) break;
+      if (!button && evt.event !== MouseEvent.Move) {
+        break;
+      }
 
       win.webContents.sendInputEvent({
         type: eventTypeMap as 'mouseDown' | 'mouseUp' | 'mouseMove',
@@ -93,7 +115,7 @@ export function handleInput(evt: InputEvent) {
         y: evt.y || 0,
         button,
         modifiers: handleModifiers(evt.modfiers),
-        clickCount: 1,
+        clickCount: evt.event === MouseEvent.Down ? 1 : 0,
       });
       break;
     }
