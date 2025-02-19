@@ -84,7 +84,16 @@ export const setup = () => {
     false,
   );
 
-  setModes([Mode.autoRepeat, Mode.autoWrap, Mode.alternateScreen], true);
+  setModes(
+    [
+      Mode.autoRepeat,
+      Mode.autoWrap,
+      Mode.alternateScreen,
+      Mode.mouseSgrPixelMode,
+      Mode.mouseMoveTracking,
+    ],
+    true,
+  );
 
   clearScreen();
 };

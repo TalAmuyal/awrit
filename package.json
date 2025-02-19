@@ -14,14 +14,14 @@
     "lint-fix": "biome lint --write ./src",
     "lint-fix-unsafe": "biome lint --write --unsafe ./src",
     "typecheck": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "build": "esbuild src/main/index.ts --log-level=error --bundle --platform=node --format=cjs --external:electron --outfile=dist/main/index.cjs && cp -rf ./node_modules/awrit-native/prebuilds dist/main/",
-    "start": "npm run build && electron dist/main/index.cjs",
+    "build": "esbuild src/index.ts --log-level=error --bundle --platform=node --format=cjs --external:electron --outfile=dist/index.cjs && cp -rf ./node_modules/awrit-native/prebuilds dist/",
+    "start": "npm run build && electron dist/index.cjs",
     "test": "vitest",
-    "input-test": "tsx ./src/main/tty/inputTest.ts",
-    "gfx-test": "tsx ./src/main/tty/graphicsTest.ts"
+    "input-test": "tsx ./src/tty/inputTest.ts",
+    "gfx-test": "tsx ./src/tty/graphicsTest.ts"
   },
   "dependencies": {
-    "awrit-native": "github:chase/node-awrit-native#0c12bfafae1746494380e1a271a75d63bf4b634d"
+    "awrit-native": "github:chase/node-awrit-native#31d0550a5553e3eaacaf7fc47d76ba62e4c6679d"
   },
   "devDependencies": {
     "@biomejs/biome": "1.8.3",

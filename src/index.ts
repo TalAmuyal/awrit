@@ -1,0 +1,129 @@
+import { app, BrowserWindow } from 'electron';
+import {
+  shmUnlink,
+  shmWrite,
+  EscapeType,
+  cleanupInput,
+  listenForInput,
+  setupInput,
+} from 'awrit-native';
+import type { InputEvent } from 'awrit-native';
+import { randomBytes } from 'node:crypto';
+import { paintInitialFrame, loadFrame, compositeFrame } from './tty/kittyGraphics';
+import * as out from './tty/output';
+import { handleInput } from './inputHandler';
+import { focusedWindow, managedWindows, windowSize } from './windows';
+
+const FRAME_NAME = '/frame-' + randomBytes(4).toString('hex');
+const SPARE_FRAME_NAME = '/spare-frame-' + randomBytes(4).toString('hex');
+
+const INITIAL_URL = process.argv[2] || 'https://github.com/chase/awrit';
+
+let exiting = false;
+let quitListening = () => {};
+
+const DPI_SCALE = 2;
+
+const cleanup = (signum = 1) => {
+  exiting = true;
+  quitListening();
+  cleanupInput();
+  out.cleanup();
+  try {
+    shmUnlink(FRAME_NAME);
+  } catch {
+    console.error('Could not free shared memory');
+  }
+  process.exit(signum);
+};
+
+function resizeHandler(size: { width: number; height: number }) {
+  Object.assign(windowSize, size);
+}
+
+function inputHandler(evt: InputEvent) {
+  if (evt.type === EscapeType.Key && evt.code === 'c' && evt.modifiers.includes('ctrl')) {
+    quitListening();
+    cleanup(0);
+  }
+
+  if (evt.type === EscapeType.CSI && evt.data.startsWith('4') && evt.data.endsWith('t')) {
+    const [height, width] = evt.data.slice(2, -1).split(';');
+    resizeHandler({ width: Number.parseInt(width), height: Number.parseInt(height) });
+  }
+
+  if (evt.type === EscapeType.Mouse && evt.x && evt.y) {
+    evt.x = Math.floor(evt.x / DPI_SCALE);
+    evt.y = Math.floor(evt.y / DPI_SCALE);
+  }
+  handleInput(evt);
+}
+
+function setup() {
+  process.on('SIGINT', cleanup);
+  process.on('SIGTERM', cleanup);
+  process.on('SIGABRT', cleanup);
+  process.on('SIGWINCH', () => {
+    out.requestWindowSize();
+  });
+
+  out.setup();
+  setupInput();
+  quitListening = listenForInput(inputHandler);
+
+  out.clearScreen();
+  out.placeCursor({ x: 0, y: 0 });
+  out.requestWindowSize();
+}
+
+setup();
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: Math.floor(windowSize.width / DPI_SCALE),
+    height: Math.floor(windowSize.height / DPI_SCALE),
+    show: false,
+    useContentSize: true,
+    webPreferences: {
+      offscreen: true,
+    },
+    transparent: true,
+    backgroundColor: '#00000000',
+  });
+
+  win.loadURL(INITIAL_URL);
+  managedWindows.push(win);
+  focusedWindow.current = win;
+
+  let id: number | undefined;
+  const doPaint = true;
+
+  win.webContents.on('paint', (event, dirty, image) => {
+    if (!doPaint) return;
+    if (exiting) return;
+
+    try {
+      const buffer = image.getBitmap();
+      shmWrite(id == null ? FRAME_NAME : SPARE_FRAME_NAME, buffer, true);
+
+      const size = { width: image.getSize().width, height: image.getSize().height };
+
+      if (id == null) {
+        id = paintInitialFrame(FRAME_NAME, size);
+      } else {
+        loadFrame(id, 2, SPARE_FRAME_NAME, size);
+        compositeFrame(id, 2, 1, size);
+      }
+    } catch (error) {
+      console.error('Error painting HN window:', error);
+    }
+  });
+
+  return win;
+}
+
+// Prevents high DPI scaling based on host display
+app.commandLine.appendSwitch('force-device-scale-factor', DPI_SCALE.toString());
+app.commandLine.appendSwitch('high-dpi-support', 'true');
+
+app.whenReady().then(createWindow);

@@ -1,6 +1,3 @@
-# ⚠️ THIS BRANCH IS NOT READY FOR USE ⚠️ 
-Any issues regarding this branch will be closed without comment as `wontfix`
-
 # Actual Web Rendering in Terminal
 
 Or just `awrit`.
@@ -21,14 +18,15 @@ Yep, actual Chromium being rendered in your favorite terminal that supports the 
 ## Running
 
 ``` bash
+git clone https://github.com/chase/awrit.git
 npm install
-npm run start
+npm start
 ```
 
 ## Usage
 
 ```bash
-awrit [url]
+npm start [url]
 
 # if url is not provided, it will go to the awrit homepage (this is temporary, promise)
 # the URL protocol can be http:, https:, or data:
@@ -38,7 +36,7 @@ awrit [url]
 The `data:` URL in the demo video is the following:
 
 ```bash
-awrit 'data:text/html;base64,PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+PHN0eWxlPjpyb2
+npm start 'data:text/html;base64,PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+PHN0eWxlPjpyb2
 90ey0tYmFja2dyb3VuZDojMjMyYTJlOy0tYmFzZTojRDNDNmFhOy0tYWNjZW50OiM4M2MwOTI7LS1za
 GFkb3c6IzRGNUI1OH1odG1se2Rpc3BsYXk6Z3JpZDtoZWlnaHQ6MTAwJTtwbGFjZS1pdGVtczpjZW50
 ZXJ9LmNvb2x7Zm9udDpib2xkIDNyZW0vMS4yIHNhbnMtc2VyaWY7bWF4LXdpZHRoOjEycmVtfS5jb29

@@ -19,7 +19,7 @@ function main() {
   setupInput();
   process.stdout.write('Awrit Input Test\r\n');
   quitListening = listenForInput((evt) => {
-    if (evt.type === EscapeType.Key && evt.code === 'ctrl+c') {
+    if (evt.type === EscapeType.Key && evt.code === 'c' && evt.modifiers.includes('ctrl')) {
       quitListening();
       cleanup(0);
     }
