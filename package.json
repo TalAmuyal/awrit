@@ -1,6 +1,6 @@
 {
   "name": "awrit",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A full graphical web browser for Kitty terminal with mouse and keyboard support",
   "main": "index.js",
   "author": "Chase Colman",
@@ -8,31 +8,29 @@
   "engines": {
     "node": ">=22.11.0"
   },
+  "workspaces": [
+    "src/runner"
+  ],
   "scripts": {
     "format": "biome format --write .",
     "lint": "biome lint ./src",
     "lint-fix": "biome lint --write ./src",
     "lint-fix-unsafe": "biome lint --write --unsafe ./src",
-    "typecheck": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "build": "esbuild src/index.ts --log-level=error --bundle --platform=node --format=cjs --external:electron --outfile=dist/index.cjs && cp -rf ./node_modules/awrit-native/prebuilds dist/",
-    "start": "npm run build && electron dist/index.cjs",
-    "test": "vitest",
-    "input-test": "tsx ./src/tty/inputTest.ts",
-    "gfx-test": "tsx ./src/tty/graphicsTest.ts"
+    "start": "electron dist/index.cjs",
+    "input-test": "bun run ./src/tty/inputTest.ts",
+    "gfx-test": "bun run ./src/tty/graphicsTest.ts"
   },
   "dependencies": {
-    "awrit-native": "github:chase/node-awrit-native#31d0550a5553e3eaacaf7fc47d76ba62e4c6679d",
+    "awrit-native": "github:chase/node-awrit-native#4c393f0c17a7b1837b542cc0b597e1baa7b3b5a5",
     "electron-chrome-context-menu": "^1.1.0",
-    "electron-chrome-extensions": "^4.3.0",
-    "electron-chrome-web-store": "^0.8.1"
+    "electron-chrome-extensions": "^4.5.0",
+    "electron-chrome-web-store": "^0.9.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.8.3",
-    "@types/node": "^18.19.9",
-    "electron": "^35.0.0-beta.7",
-    "esbuild": "^0.25.0",
-    "tsx": "^3.12.10",
-    "typescript": "^5.3.3",
-    "vitest": "^3.0.5"
-  }
+    "@biomejs/biome": "1.9.4",
+    "@types/node": "^22.13.8",
+    "electron": "35.0.0-beta.12",
+    "typescript": "^5.8.2"
+  },
+  "trustedDependencies": ["@biomejs/biome", "awrit-native", "core-js"]
 }

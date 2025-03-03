@@ -3,3 +3,5 @@ dist
 out
 .DS_Store
 *.log*
+.bun
+awrit_error.txt

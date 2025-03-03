@@ -19,14 +19,13 @@ Yep, actual Chromium being rendered in your favorite terminal that supports the 
 
 ``` bash
 git clone https://github.com/chase/awrit.git
-npm install
-npm start
+./awrit
 ```
 
 ## Usage
 
 ```bash
-npm start [url]
+./awrit [url]
 
 # if url is not provided, it will go to the awrit homepage (this is temporary, promise)
 # the URL protocol can be http:, https:, or data:
@@ -36,7 +35,7 @@ npm start [url]
 The `data:` URL in the demo video is the following:
 
 ```bash
-npm start 'data:text/html;base64,PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+PHN0eWxlPjpyb2
+./awrit -t 'data:text/html;base64,PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+PHN0eWxlPjpyb2
 90ey0tYmFja2dyb3VuZDojMjMyYTJlOy0tYmFzZTojRDNDNmFhOy0tYWNjZW50OiM4M2MwOTI7LS1za
 GFkb3c6IzRGNUI1OH1odG1se2Rpc3BsYXk6Z3JpZDtoZWlnaHQ6MTAwJTtwbGFjZS1pdGVtczpjZW50
 ZXJ9LmNvb2x7Zm9udDpib2xkIDNyZW0vMS4yIHNhbnMtc2VyaWY7bWF4LXdpZHRoOjEycmVtfS5jb29

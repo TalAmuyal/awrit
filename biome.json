@@ -36,6 +36,12 @@
     "rules": {
       "style": {
         "useTemplate": "off"
+      },
+      "a11y": {
+        "all": false
+      },
+      "suspicious": {
+        "noExplicitAny": "off"
       }
     }
   }

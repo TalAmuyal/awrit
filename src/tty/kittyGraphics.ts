@@ -1,26 +1,24 @@
 import { stdout } from 'node:process';
 import { GFX } from './escapeCodes';
-import type { Point, Size } from './graphics';
+import type { Rect, Size } from './graphics';
+import { options } from '../args';
 
 const nameBase64Cache: Record<string, string> = {};
-// TODO: request an id instead of forcing it to be 1
-let animationId_ = 1;
+let imageId_ = 1;
 
-type AnimationId = number & {};
-function animationId(): AnimationId {
-  return animationId_++;
+type ImageId = number & {};
+function imageId(): ImageId {
+  return imageId_++;
 }
 
-function point_(point?: Point) {
-  return point == null ? '' : `,x=${point.x},y=${point.y}`;
-}
+const quiet = options['debug-paint'] ? '' : ',q=2';
 
 function sv_size_(size: Size) {
   return `,s=${size.width},v=${size.height}`;
 }
 
-function wh_size_(size: Size) {
-  return `,w=${size.width},h=${size.height}`;
+function rect_(rect: Rect) {
+  return `,x=${rect.x},y=${rect.y},w=${rect.width},h=${rect.height}`;
 }
 
 function shmRgba_(name: string, size: Size, control: string) {
@@ -35,46 +33,74 @@ function shmRgba_(name: string, size: Size, control: string) {
   stdout.write(GFX`f=32,t=s${sv_size_(size)},${control};${encoded}`);
 }
 
-export function paintBitmap(name: string, size: Size, control?: string) {
+function paintBitmap(name: string, size: Size, control?: string) {
   // a=T transfer & display
   // C=1 don't move cursor
-  shmRgba_(name, size, `a=T,q=2,C=1${control == null ? '' : ',' + control}`);
+  shmRgba_(name, size, `a=T,C=1${control == null ? '' : ',' + control}`);
 }
 
-export function paintInitialFrame(name: string, size: Size): AnimationId {
-  const id = animationId();
+export interface AnimationFrame {
+  readonly size: Size;
+  composite: (destinationRect: Rect) => void;
+  delete: () => void;
+}
+
+export interface InitialFrame {
+  readonly size: Size;
+  paintedContent: number;
+  loadFrame: (frame: number, name: string, size: Size) => AnimationFrame;
+  free: () => void;
+}
+
+export function paintInitialFrame(name: string, size: Size): InitialFrame {
+  const id = imageId();
   // paint and transfer first frame
   paintBitmap(name, size, `i=${id}`);
   // pause at the first frame
-  stdout.write(GFX`a=a,q=2,i=${id},c=1`);
-  return id;
+  stdout.write(GFX`a=a,i=${id},c=1`);
+
+  return {
+    size,
+    paintedContent: 0,
+    loadFrame: (frame: number, name: string, size: Size) => loadFrame(id, frame, name, size),
+    free: () => freeImage(id),
+  };
 }
 
-export function loadFrame(id: AnimationId, frame: number, name: string, size: Size): AnimationId {
+function loadFrame(id: ImageId, frame: number, name: string, size: Size): AnimationFrame {
   // a=f animation frame
-  shmRgba_(name, size, `a=f,q=2,i=${id},r=${frame}`);
-  return id;
+  shmRgba_(name, size, `a=f${quiet},i=${id},r=${frame},X=1`);
+
+  return {
+    size,
+    composite: (destinationRect: Rect) => compositeFrame(id, frame, 1, destinationRect),
+    delete: () => deleteFrame(id, frame),
+  };
 }
 
-export function compositeFrame(
-  id: AnimationId,
+function deleteFrame(id: ImageId, frame: number) {
+  // a=d,d=F delete animation frame, freeing data
+  stdout.write(GFX`a=d,d=f,i=${id},r=${frame}`);
+}
+
+function compositeFrame(
+  id: ImageId,
   sourceFrame: number,
   destinationFrame: number,
-  size: Size,
-  destinationPoint: Point = { x: 0, y: 0 },
+  destinationRect: Rect = { x: 0, y: 0, width: 0, height: 0 },
 ) {
   // a=c composite animation frame
   // C=1 replace pixels (src copy)
   stdout.write(
-    GFX`a=c,q=2,C=1,i=${id},r=${sourceFrame},c=${destinationFrame}${wh_size_(size)}${point_(destinationPoint)}`,
+    GFX`a=c${quiet},C=1,i=${id},r=${sourceFrame},c=${destinationFrame}${rect_(destinationRect)}`,
   );
 }
 
 export function clearPlacements() {
-  stdout.write(GFX`a=d,q=2`);
+  stdout.write(GFX`a=d`);
 }
 
-export function freeImage(id: AnimationId) {
-  // a=d delete image
-  stdout.write(GFX`a=d,q=2,i${id}`);
+function freeImage(id: ImageId) {
+  // a=d,d=I delete image
+  stdout.write(GFX`a=d,d=I,i=${id}`);
 }

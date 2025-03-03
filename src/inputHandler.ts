@@ -1,7 +1,8 @@
 import { EscapeType, KeyEvent, MouseEvent, MouseButton, type InputEvent } from 'awrit-native';
-import type { BrowserWindow } from 'electron';
-import { focusedWindow } from './windows';
+import type { BrowserWindow, WebContents, WebContentsView } from 'electron';
+import { focusedView, TOOLBAR_HEIGHT } from './windows';
 import { placeCursor } from './tty/output';
+import { DPI_SCALE } from './dpi';
 
 function handleModifiers(modifiers: number): Array<'shift' | 'alt' | 'ctrl'> {
   const result: Array<'shift' | 'alt' | 'ctrl'> = [];
@@ -44,10 +45,10 @@ const SHIFT_MAP = {
   '`': '~',
 };
 
-async function guessIMEPositionInWindow(win: BrowserWindow) {
+async function guessIMEPositionInWindow(view: BrowserWindow) {
   let bounds = { x: 0, y: 0 };
   try {
-    bounds = await win.webContents.executeJavaScript(
+    bounds = await view.webContents.executeJavaScript(
       `(() => {
         const rect = document.activeElement?.getBoundingClientRect();
         return rect && { x: rect.left, y: rect.top }
@@ -60,12 +61,12 @@ async function guessIMEPositionInWindow(win: BrowserWindow) {
     return bounds;
   }
 
-  const [contentWidth, contentHeight] = win.getContentSize();
+  const { width, height } = view.getBounds();
   const [ttyWidth, ttyHeight] = process.stdout.getWindowSize();
 
   // Calculate position relative to window content size
-  const x = Math.ceil((bounds.x / contentWidth) * ttyWidth);
-  const y = Math.ceil((bounds.y / contentHeight) * ttyHeight);
+  const x = Math.ceil((bounds.x / width) * ttyWidth);
+  const y = Math.ceil((bounds.y / height) * ttyHeight);
 
   return { x, y };
 }
@@ -73,12 +74,12 @@ async function guessIMEPositionInWindow(win: BrowserWindow) {
 export function handleInput(evt: InputEvent) {
   if (evt.type !== EscapeType.Key && evt.type !== EscapeType.Mouse) return;
 
-  const win = focusedWindow.current;
-  if (!win) {
+  const view = focusedView.current;
+  if (!view) {
     return;
   }
 
-  guessIMEPositionInWindow(win).then((position) => {
+  guessIMEPositionInWindow(view.content).then((position) => {
     if (position) {
       placeCursor(position);
     }
@@ -86,24 +87,26 @@ export function handleInput(evt: InputEvent) {
 
   switch (evt.type) {
     case EscapeType.Key: {
+      const webContents = view.focusedContent;
+
       if (evt.event === KeyEvent.Unicode) {
-        win.webContents.insertText(evt.code);
+        webContents.insertText(evt.code);
       } else if (evt.event === KeyEvent.Down && evt.code.length === 1) {
         const keyCode = evt.modifiers.includes('shift')
-          ? SHIFT_MAP[evt.code as keyof typeof SHIFT_MAP] ?? evt.code.toUpperCase()
+          ? (SHIFT_MAP[evt.code as keyof typeof SHIFT_MAP] ?? evt.code.toUpperCase())
           : evt.code;
-        win.webContents.sendInputEvent({
+        webContents.sendInputEvent({
           type: 'rawKeyDown',
           keyCode,
           modifiers: evt.modifiers,
         });
-        win.webContents.sendInputEvent({
+        webContents.sendInputEvent({
           type: 'char',
           keyCode,
           modifiers: evt.modifiers,
         });
       } else {
-        win.webContents.sendInputEvent({
+        webContents.sendInputEvent({
           type: evt.event === KeyEvent.Up ? 'keyUp' : 'keyDown',
           keyCode: evt.code,
           modifiers: evt.modifiers,
@@ -114,16 +117,32 @@ export function handleInput(evt: InputEvent) {
 
     case EscapeType.Mouse: {
       const isWheelUp = evt.buttons & MouseButton.WheelUp;
+      evt.x ??= 0;
+      evt.y ??= 0;
+
+      let { x, y } = evt;
+
+      let focusedContent: WebContents;
+      if (y > TOOLBAR_HEIGHT) {
+        y -= TOOLBAR_HEIGHT;
+        focusedContent = view.content.webContents;
+      } else {
+        focusedContent = view.toolbar.webContents;
+      }
+
+      x = Math.floor(x / DPI_SCALE);
+      y = Math.floor(y / DPI_SCALE);
+
       if (isWheelUp || evt.buttons & MouseButton.WheelDown) {
-        win.webContents.sendInputEvent({
+        view.content.webContents.sendInputEvent({
           type: 'mouseWheel',
           wheelTicksY: isWheelUp ? 1 : -1,
           wheelTicksX: 0,
           deltaX: 0,
           deltaY: isWheelUp ? WHEEL_DELTA : -WHEEL_DELTA,
           modifiers: handleModifiers(evt.modfiers),
-          x: evt.x || 0,
-          y: evt.y || 0,
+          x,
+          y,
           accelerationRatioY: 0.5,
           hasPreciseScrollingDeltas: false,
           canScroll: true,
@@ -143,14 +162,25 @@ export function handleInput(evt: InputEvent) {
         break;
       }
 
-      win.webContents.sendInputEvent({
+      focusedContent.sendInputEvent({
         type: eventTypeMap as 'mouseDown' | 'mouseUp' | 'mouseMove',
-        x: evt.x || 0,
-        y: evt.y || 0,
+        x,
+        y,
         button,
         modifiers: handleModifiers(evt.modfiers),
         clickCount: evt.event === MouseEvent.Down ? 1 : 0,
       });
+
+      if (evt.event === MouseEvent.Down && button === 'left') {
+        if (focusedContent !== view.focusedContent) {
+          if (focusedContent === view.content.webContents) {
+            view.content.blurWebView();
+          } else {
+            view.toolbar.blurWebView();
+          }
+          view.focusedContent = focusedContent;
+        }
+      }
       break;
     }
   }

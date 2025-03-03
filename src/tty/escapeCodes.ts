@@ -27,6 +27,18 @@ export function GFX(strings: TemplateStringsArray, ...args: StringLike[]) {
   return ret + `${ESC_CODE}\\`;
 }
 
+export function ParseGFXStatus(str: string) {
+  // Match on Gi=<id>;OK or Gi=<id>;ENOENT:<some detailed error msg>
+  const match = str.match(/Gi=([^;]+);(OK|ENOENT:(.+))$/);
+  if (!match) return null;
+
+  return {
+    id: match[1],
+    ok: match[2] === 'OK',
+    error: match[2].startsWith('ENOENT:') ? match[3] : null,
+  };
+}
+
 export const MODE = '?'; // DEC private mode
 export const S7C1T = ESC` F`;
 export const SAVE_CURSOR = ESC`7`;

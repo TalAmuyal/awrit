@@ -1,0 +1,18 @@
+import { contextBridge, ipcRenderer } from 'electron';
+
+// Expose protected methods that allow the renderer process to use
+// the ipcRenderer without exposing the entire object
+contextBridge.exposeInMainWorld('ipc', {
+  // Navigation functions
+  navigateBack: () => ipcRenderer.send('toolbar:navigate-back'),
+  navigateForward: () => ipcRenderer.send('toolbar:navigate-forward'),
+  refresh: () => ipcRenderer.send('toolbar:navigate-refresh'),
+  navigateTo: (url) => ipcRenderer.send('toolbar:navigate-to', url),
+
+  // Event listeners
+  onLoadingStarted: (callback) => ipcRenderer.on('content:loading-started', callback),
+  onLoadingStopped: (callback) => ipcRenderer.on('content:loading-stopped', callback),
+  onUrlChanged: (callback) => ipcRenderer.on('content:url-changed', (_event, url) => callback(url)),
+  onNavigationStateChanged: (callback) =>
+    ipcRenderer.on('content:navigation-state-changed', (_event, state) => callback(state)),
+});
