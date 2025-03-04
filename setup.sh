@@ -88,5 +88,5 @@ fi
 
 if [ ! -d "$BASE_DIR/node_modules" ]; then
   "$BUN_EXE" install
-  "$BUN_EXE" pm trust @biomejs/biome awrit-native
+  "$BUN_EXE" pm trust @biomejs/biome awrit-native esbuild electron
 fi
