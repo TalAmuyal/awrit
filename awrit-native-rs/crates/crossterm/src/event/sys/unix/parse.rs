@@ -2,7 +2,8 @@ use std::io;
 
 use crate::event::{
     Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers, KeyboardEnhancementFlags,
-    MediaKeyCode, ModifierKeyCode, MouseButton, MouseEvent, MouseEventKind,
+    KittyGraphicsOkOrError, MediaKeyCode, ModifierKeyCode, MouseButton, MouseEvent, MouseEventKind,
+    Sequence,
 };
 
 use super::super::super::InternalEvent;
@@ -73,7 +74,11 @@ pub(crate) fn parse_event(
                             }
                         }
                     }
+                    b'P' => parse_dcs(buffer),
                     b'[' => parse_csi(buffer),
+                    b'_' => parse_apc(buffer),
+                    b']' => parse_osc(buffer),
+                    b'^' => parse_pm(buffer),
                     b'\x1B' => Ok(Some(InternalEvent::Event(Event::Key(KeyCode::Esc.into())))),
                     _ => parse_event(&buffer[1..], input_available).map(|event_option| {
                         event_option.map(|event| {
@@ -211,6 +216,101 @@ pub(crate) fn parse_csi(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
     };
 
     Ok(input_event.map(InternalEvent::Event))
+}
+
+pub(crate) fn parse_dcs(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
+    assert!(buffer.starts_with(b"\x1BP")); // ESC P
+    if buffer.len() == 2 {
+        return Ok(None);
+    }
+
+    // DCS sequences are terminated by ST (String Terminator - ESC \)
+    if !buffer.ends_with(b"\x1B\\") {
+        return Ok(None);
+    }
+
+    // Extract the content between DCS introducer and ST terminator
+    let content = &buffer[2..buffer.len() - 2];
+    let content_str = String::from_utf8_lossy(content).into_owned();
+    Ok(Some(InternalEvent::Escape(Sequence::Dcs(content_str))))
+}
+
+pub(crate) fn parse_apc(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
+    assert!(buffer.starts_with(b"\x1B_")); // ESC _
+    if buffer.len() == 2 {
+        return Ok(None);
+    }
+
+    // APC sequences are terminated by ST (String Terminator - ESC \)
+    if !buffer.ends_with(b"\x1B\\") {
+        return Ok(None);
+    }
+
+    // Extract the content between APC introducer and ST terminator
+    let content = &buffer[2..buffer.len() - 2];
+
+    // Kitty Graphics
+    if content.len() > 1 && content[0] == b'G' {
+        if content.len() < 2 {
+            return Ok(None);
+        }
+        let content_str = String::from_utf8_lossy(&content[1..]).into_owned();
+        let parts: Vec<&str> = content_str.split(';').collect();
+        let (graphics_data, status) = if parts.len() == 2 {
+            (parts[0].to_string(), parts[1])
+        } else {
+            (content_str, "")
+        };
+        let result = if status == "OK" {
+            KittyGraphicsOkOrError::Ok
+        } else {
+            KittyGraphicsOkOrError::Error(status.to_string())
+        };
+        return Ok(Some(InternalEvent::KittyGraphics(graphics_data, result)));
+    }
+
+    let content_str = String::from_utf8_lossy(content).into_owned();
+    Ok(Some(InternalEvent::Escape(Sequence::Apc(content_str))))
+}
+
+pub(crate) fn parse_osc(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
+    assert!(buffer.starts_with(b"\x1B]")); // ESC ]
+    if buffer.len() == 2 {
+        return Ok(None);
+    }
+
+    // OSC sequences can be terminated by either ST (ESC \) or BEL (\x07)
+    if !buffer.ends_with(b"\x1B\\") && !buffer.ends_with(&[0x07]) {
+        return Ok(None);
+    }
+
+    // Extract the content between OSC introducer and terminator
+    let content_end = if buffer.ends_with(b"\x1B\\") {
+        buffer.len() - 2
+    } else {
+        buffer.len() - 1
+    };
+    let content = &buffer[2..content_end];
+    let content_str = String::from_utf8_lossy(content).into_owned();
+    Ok(Some(InternalEvent::Escape(Sequence::Osc(content_str))))
+}
+
+pub(crate) fn parse_pm(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
+    assert!(buffer.starts_with(b"\x1B^")); // ESC ^
+    if buffer.len() == 2 {
+        return Ok(None);
+    }
+
+    // PM sequences are terminated by ST (String Terminator - ESC \)
+    if !buffer.ends_with(b"\x1B\\") {
+        return Ok(None);
+    }
+
+    // Extract the content between PM introducer and ST terminator
+    let content = &buffer[2..buffer.len() - 2];
+
+    let content_str = String::from_utf8_lossy(content).into_owned();
+    Ok(Some(InternalEvent::Escape(Sequence::Pm(content_str))))
 }
 
 pub(crate) fn next_parsed<T>(iter: &mut dyn Iterator<Item = &str>) -> io::Result<T>
@@ -995,6 +1095,57 @@ mod tests {
                 KeyModifiers::SHIFT
             )))),
         );
+
+        // Test DCS sequence
+        assert_eq!(
+            parse_event(b"\x1BPtest\x1B\\", false).unwrap(),
+            Some(InternalEvent::Escape(Sequence::Dcs("test".to_string())))
+        );
+
+        // Test APC sequence - regular
+        assert_eq!(
+            parse_event(b"\x1B_test\x1B\\", false).unwrap(),
+            Some(InternalEvent::Escape(Sequence::Apc("test".to_string())))
+        );
+
+        // Test APC sequence - Kitty Graphics
+        assert_eq!(
+            parse_event(b"\x1B_Gimage_data;OK\x1B\\", false).unwrap(),
+            Some(InternalEvent::KittyGraphics(
+                "image_data".to_string(),
+                KittyGraphicsOkOrError::Ok
+            ))
+        );
+
+        // Test OSC sequence with ST terminator
+        assert_eq!(
+            parse_event(b"\x1B]test\x1B\\", false).unwrap(),
+            Some(InternalEvent::Escape(Sequence::Osc("test".to_string())))
+        );
+
+        // Test OSC sequence with BEL terminator
+        assert_eq!(
+            parse_event(b"\x1B]test\x07", false).unwrap(),
+            Some(InternalEvent::Escape(Sequence::Osc("test".to_string())))
+        );
+
+        // Test PM sequence
+        assert_eq!(
+            parse_event(b"\x1B^test\x1B\\", false).unwrap(),
+            Some(InternalEvent::Escape(Sequence::Pm("test".to_string())))
+        );
+
+        // Test incomplete sequences with input_available=true
+        assert_eq!(parse_event(b"\x1BP", true).unwrap(), None); // DCS
+        assert_eq!(parse_event(b"\x1B_", true).unwrap(), None); // APC
+        assert_eq!(parse_event(b"\x1B]", true).unwrap(), None); // OSC
+        assert_eq!(parse_event(b"\x1B^", true).unwrap(), None); // PM
+
+        // Test incomplete sequences with input_available=false
+        assert_eq!(parse_event(b"\x1BP", false).unwrap(), None); // DCS
+        assert_eq!(parse_event(b"\x1B_", false).unwrap(), None); // APC
+        assert_eq!(parse_event(b"\x1B]", false).unwrap(), None); // OSC
+        assert_eq!(parse_event(b"\x1B^", false).unwrap(), None); // PM
     }
 
     #[test]
@@ -1501,6 +1652,90 @@ mod tests {
                 KeyModifiers::CONTROL,
                 KeyEventKind::Release,
             )))),
+        );
+    }
+
+    #[test]
+    fn test_parse_dcs() {
+        // Test incomplete sequence
+        assert_eq!(parse_dcs(b"\x1BP").unwrap(), None);
+
+        // Test sequence without terminator
+        assert_eq!(parse_dcs(b"\x1BPtest").unwrap(), None);
+
+        // Test valid sequence
+        assert_eq!(
+            parse_dcs(b"\x1BPtest\x1B\\").unwrap(),
+            Some(InternalEvent::Escape(Sequence::Dcs("test".to_string())))
+        );
+    }
+
+    #[test]
+    fn test_parse_apc() {
+        // Test incomplete sequence
+        assert_eq!(parse_apc(b"\x1B_").unwrap(), None);
+
+        // Test sequence without terminator
+        assert_eq!(parse_apc(b"\x1B_test").unwrap(), None);
+
+        // Test valid sequence
+        assert_eq!(
+            parse_apc(b"\x1B_test\x1B\\").unwrap(),
+            Some(InternalEvent::Escape(Sequence::Apc("test".to_string())))
+        );
+
+        // Test Kitty Graphics sequence
+        assert_eq!(
+            parse_apc(b"\x1B_Gdata;OK\x1B\\").unwrap(),
+            Some(InternalEvent::KittyGraphics(
+                "data".to_string(),
+                KittyGraphicsOkOrError::Ok
+            ))
+        );
+
+        // Test Kitty Graphics error sequence
+        assert_eq!(
+            parse_apc(b"\x1B_Gdata;ERROR\x1B\\").unwrap(),
+            Some(InternalEvent::KittyGraphics(
+                "data".to_string(),
+                KittyGraphicsOkOrError::Error("ERROR".to_string())
+            ))
+        );
+    }
+
+    #[test]
+    fn test_parse_osc() {
+        // Test incomplete sequence
+        assert_eq!(parse_osc(b"\x1B]").unwrap(), None);
+
+        // Test sequence without terminator
+        assert_eq!(parse_osc(b"\x1B]test").unwrap(), None);
+
+        // Test valid sequence with ST terminator
+        assert_eq!(
+            parse_osc(b"\x1B]test\x1B\\").unwrap(),
+            Some(InternalEvent::Escape(Sequence::Osc("test".to_string())))
+        );
+
+        // Test valid sequence with BEL terminator
+        assert_eq!(
+            parse_osc(b"\x1B]test\x07").unwrap(),
+            Some(InternalEvent::Escape(Sequence::Osc("test".to_string())))
+        );
+    }
+
+    #[test]
+    fn test_parse_pm() {
+        // Test incomplete sequence
+        assert_eq!(parse_pm(b"\x1B^").unwrap(), None);
+
+        // Test sequence without terminator
+        assert_eq!(parse_pm(b"\x1B^test").unwrap(), None);
+
+        // Test valid sequence
+        assert_eq!(
+            parse_pm(b"\x1B^test\x1B\\").unwrap(),
+            Some(InternalEvent::Escape(Sequence::Pm("test".to_string())))
         );
     }
 }

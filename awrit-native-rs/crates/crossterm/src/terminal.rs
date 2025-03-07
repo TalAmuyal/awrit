@@ -101,6 +101,12 @@ pub(crate) mod sys;
 #[cfg(feature = "events")]
 pub use sys::supports_keyboard_enhancement;
 
+#[cfg(feature = "events")]
+pub use sys::query_kitty_graphics_support;
+
+#[cfg(feature = "events")]
+pub use sys::KittyGraphicsSupport;
+
 /// Tells whether the raw mode is enabled.
 ///
 /// Please have a look at the [raw mode](./index.html#raw-mode) section.

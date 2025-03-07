@@ -331,6 +331,8 @@ impl Command for EnableMouseCapture {
             csi!("?1015h"),
             // SGR mouse mode: Allows mouse coordinates of >223, preferred over RXVT mode
             csi!("?1006h"),
+            // SGR-Pixels mouse mode: Allows mouse coordinates in pixels
+            csi!("?1016h"),
         ))
     }
 
@@ -355,6 +357,7 @@ impl Command for DisableMouseCapture {
     fn write_ansi(&self, f: &mut impl fmt::Write) -> fmt::Result {
         f.write_str(concat!(
             // The inverse commands of EnableMouseCapture, in reverse order.
+            csi!("?1016l"),
             csi!("?1006l"),
             csi!("?1015l"),
             csi!("?1003l"),
@@ -563,6 +566,24 @@ pub enum Event {
     /// An resize event with new dimensions after resize (columns, rows).
     /// **Note** that resize events can occur in batches.
     Resize(u16, u16),
+}
+
+/// Represents a sequence for an escape code
+#[cfg_attr(feature = "derive-more", derive(IsVariant))]
+#[derive(Debug, PartialOrd, PartialEq, Eq, Clone, Hash)]
+pub enum Sequence {
+    Osc(String),
+    Apc(String),
+    Dcs(String),
+    Pm(String),
+}
+
+/// Represents the result of a Kitty Graphics command
+#[cfg_attr(feature = "derive-more", derive(IsVariant))]
+#[derive(Debug, PartialOrd, PartialEq, Eq, Clone, Hash)]
+pub enum KittyGraphicsOkOrError {
+    Ok,
+    Error(String),
 }
 
 impl Event {
@@ -1483,6 +1504,9 @@ pub(crate) enum InternalEvent {
     /// Attributes and architectural class of the terminal.
     #[cfg(unix)]
     PrimaryDeviceAttributes,
+
+    KittyGraphics(String, KittyGraphicsOkOrError),
+    Escape(Sequence),
 }
 
 #[cfg(test)]

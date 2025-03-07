@@ -1,10 +1,15 @@
 use crossterm::{
-  event::KeyboardEnhancementFlags,
-  terminal::{disable_raw_mode, enable_raw_mode},
+  event::{
+    EnableBracketedPaste, EnableFocusChange, EnableMouseCapture, KeyboardEnhancementFlags,
+    PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
+  },
+  execute, queue,
+  terminal::{
+    disable_raw_mode, enable_raw_mode, query_kitty_graphics_support, supports_keyboard_enhancement,
+  },
 };
-use std::io;
 
-#[napi]
+#[napi(object)]
 pub struct SupportedFeatures {
   pub keyboard: bool,
   pub images: bool,
@@ -13,21 +18,54 @@ pub struct SupportedFeatures {
 }
 
 #[napi]
-fn term_enable_features() -> io::Result<SupportedFeatures> {
-  enable_raw_mode()?;
-  let mut stdout = io::stdout();
+/// Enable features for the terminal that are necessary for Awrit
+pub fn term_enable_features() -> napi::Result<SupportedFeatures> {
+  enable_raw_mode().map_err(|e| napi::Error::from_reason(e.to_string()))?;
 
-  let keyboard = crossterm::terminal::supports_keyboard_enhancement()?;
+  let mut stdout = std::io::stdout();
+
+  // TODO: check if this is actually needed? It could potentially block the event loop for 200ms
+  let keyboard =
+    supports_keyboard_enhancement().map_err(|e| napi::Error::from_reason(e.to_string()))?;
+
+  let graphics =
+    query_kitty_graphics_support().map_err(|e| napi::Error::from_reason(e.to_string()))?;
+
+  if keyboard {
+    queue!(
+      stdout,
+      PushKeyboardEnhancementFlags(
+        KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES
+          | KeyboardEnhancementFlags::REPORT_ALL_KEYS_AS_ESCAPE_CODES
+          | KeyboardEnhancementFlags::REPORT_ALTERNATE_KEYS
+          | KeyboardEnhancementFlags::REPORT_EVENT_TYPES
+      )
+    )?;
+  }
+
+  execute!(
+    stdout,
+    EnableBracketedPaste,
+    EnableFocusChange,
+    EnableMouseCapture,
+  )?;
 
   Ok(SupportedFeatures {
     keyboard,
-    images,
-    load_frame,
-    composite_frame,
+    images: graphics.images,
+    load_frame: graphics.load_frame,
+    composite_frame: graphics.composite_frame,
   })
 }
 
 #[napi]
-fn term_disable_features() {
-  disable_raw_mode()?;
+/// Disable previously enabled features for the terminal that are necessary for Awrit
+pub fn term_disable_features(features: SupportedFeatures) -> napi::Result<()> {
+  let mut stdout = std::io::stdout();
+
+  if features.keyboard {
+    queue!(stdout, PopKeyboardEnhancementFlags)?;
+  }
+
+  disable_raw_mode().map_err(|e| napi::Error::from_reason(e.to_string()))
 }

@@ -98,7 +98,7 @@ pub fn bgra_to_rgba_rect(src: &[u8], dst: &mut [u8], image_width: u32, src_rect:
 
 #[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "avx2")]
-unsafe fn bgra_to_rgba_chunk(src: &[u8], dst: &mut [u8]) {
+unsafe fn bgra_to_rgba_chunk(src: &[u8], dst: &mut [u8]) { unsafe {
   const ALIGN_SIZE: usize = 32;
   let len = src.len();
   let src_ptr = src.as_ptr();
@@ -150,7 +150,7 @@ unsafe fn bgra_to_rgba_chunk(src: &[u8], dst: &mut [u8]) {
     dst[i + 2] = src[i];
     dst[i + 3] = src[i + 3];
   }
-}
+}}
 
 #[cfg(target_arch = "aarch64")]
 #[target_feature(enable = "neon")]
@@ -229,7 +229,7 @@ unsafe fn bgra_to_rgba_rect_chunk(
   image_width: u32,
   src_rect: Rect,
   src_start: usize,
-) {
+) { unsafe {
   const ALIGN_SIZE: usize = 32;
   let pixels_per_simd = ALIGN_SIZE / BYTES_PER_PIXEL;
   let src_ptr = src.as_ptr();
@@ -296,7 +296,7 @@ unsafe fn bgra_to_rgba_rect_chunk(
       dst[dst_offset + 3] = src[src_offset + 3]; // A
     }
   }
-}
+}}
 
 #[cfg(target_arch = "aarch64")]
 #[target_feature(enable = "neon")]

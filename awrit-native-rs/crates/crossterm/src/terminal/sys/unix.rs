@@ -242,7 +242,7 @@ fn query_keyboard_enhancement_flags_raw() -> io::Result<Option<KeyboardEnhanceme
 
     loop {
         match poll_internal(
-            Some(Duration::from_millis(2000)),
+            Some(Duration::from_millis(200)),
             &KeyboardEnhancementFlagsFilter,
         ) {
             Ok(true) => {
@@ -323,4 +323,86 @@ fn wrap_with_result(result: i32) -> io::Result<()> {
     } else {
         Ok(())
     }
+}
+
+/// A struct representing Kitty Graphics Protocol feature support
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct KittyGraphicsSupport {
+    /// Whether basic image display is supported
+    pub images: bool,
+    /// Whether loading animation frames is supported
+    pub load_frame: bool,
+    /// Whether frame composition is supported
+    pub composite_frame: bool,
+}
+
+/// Query the terminal for Kitty Graphics Protocol support.
+/// Tests three capabilities:
+/// 1. Basic image loading (single white pixel)
+/// 2. Animation frame loading
+/// 3. Frame composition
+pub fn query_kitty_graphics_support() -> io::Result<KittyGraphicsSupport> {
+    use crate::event::{
+        filter::KittyGraphicsFilter, poll_internal, read_internal, InternalEvent,
+        KittyGraphicsOkOrError,
+    };
+    use std::io::Write;
+    use std::time::Duration;
+
+    // Test 1: Load basic image
+    // Format=24 (RGB), t=d (direct), s=1 (size), v=1 (height), z=1 (width)
+    const LOAD_IMAGE: &[u8] = b"\x1B_Gf=24,i=4294111295,t=d,s=1,v=1,z=1;AAAA\x1B\\";
+    // Test 2: Load frame 2
+    const LOAD_FRAME: &[u8] = b"\x1B_Ga=f,i=4294111295,f=24,t=d,s=1,v=1,z=1,r=2;AAAA\x1B\\";
+    // Test 3: Composite frame 2 onto frame 1
+    const COMPOSITE_FRAMES: &[u8] = b"\x1B_Ga=c,c=2,r=1\x1B\\";
+
+    let mut support = KittyGraphicsSupport {
+        images: false,
+        load_frame: false,
+        composite_frame: false,
+    };
+
+    let mut stdout = io::stdout();
+    let filter = KittyGraphicsFilter;
+
+    // Test 1: Basic image loading
+    stdout.write_all(LOAD_IMAGE)?;
+    stdout.flush()?;
+
+    if poll_internal(Some(Duration::from_millis(100)), &filter)? {
+        if let Ok(InternalEvent::KittyGraphics(_, status)) = read_internal(&filter) {
+            support.images = matches!(status, KittyGraphicsOkOrError::Ok);
+        }
+    }
+
+    if support.images {
+        // Test 2: Frame loading
+        stdout.write_all(LOAD_FRAME)?;
+        stdout.flush()?;
+
+        if poll_internal(Some(Duration::from_millis(100)), &filter)? {
+            if let Ok(InternalEvent::KittyGraphics(_, status)) = read_internal(&filter) {
+                support.load_frame = matches!(status, KittyGraphicsOkOrError::Ok);
+            }
+        }
+
+        if support.load_frame {
+            // Test 3: Frame composition
+            stdout.write_all(COMPOSITE_FRAMES)?;
+            stdout.flush()?;
+
+            if poll_internal(Some(Duration::from_millis(100)), &filter)? {
+                if let Ok(InternalEvent::KittyGraphics(_, status)) = read_internal(&filter) {
+                    support.composite_frame = matches!(status, KittyGraphicsOkOrError::Ok);
+                }
+            }
+        }
+
+        // Clean up - delete the test image
+        stdout.write_all(b"\x1B_Ga=d\x1B\\")?;
+        stdout.flush()?;
+    }
+
+    Ok(support)
 }

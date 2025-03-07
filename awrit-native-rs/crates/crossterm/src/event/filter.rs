@@ -61,6 +61,16 @@ impl Filter for EventFilter {
     }
 }
 
+/// Filter that matches Kitty Graphics responses
+#[derive(Debug)]
+pub struct KittyGraphicsFilter;
+
+impl Filter for KittyGraphicsFilter {
+    fn eval(&self, event: &InternalEvent) -> bool {
+        matches!(event, InternalEvent::KittyGraphics(_, _))
+    }
+}
+
 #[cfg(test)]
 #[cfg(unix)]
 mod tests {

@@ -13,6 +13,7 @@ use std::num::NonZeroUsize;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub mod term;
+pub use term::*;
 
 #[napi(object)]
 pub struct DirtyRect {
@@ -38,6 +39,7 @@ impl ObjectFinalize for ShmGraphicBuffer {
 
 #[napi]
 impl ShmGraphicBuffer {
+  /// Creates a new shared memory buffer with a unique name with the provided size
   #[napi(constructor)]
   pub fn new(size: u32) -> Self {
     let timestamp = SystemTime::now()
@@ -115,7 +117,8 @@ impl ShmGraphicBuffer {
       .map_err(|e| napi::Error::from_reason(format!("Failed to mmap shared memory: {}", e)))?
     };
     let src_slice = buffer.as_ref();
-    let dst_slice = unsafe { std::slice::from_raw_parts_mut(ptr as *mut u8, self.size as usize) };
+    let dst_slice =
+      unsafe { std::slice::from_raw_parts_mut(ptr.as_ptr() as *mut u8, self.size as usize) };
 
     match dirty_rect {
       Some(rect) => {

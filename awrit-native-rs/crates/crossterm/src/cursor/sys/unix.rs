@@ -36,7 +36,7 @@ fn read_position_raw() -> io::Result<(u16, u16)> {
     stdout.flush()?;
 
     loop {
-        match poll_internal(Some(Duration::from_millis(2000)), &CursorPositionFilter) {
+        match poll_internal(Some(Duration::from_millis(200)), &CursorPositionFilter) {
             Ok(true) => {
                 if let Ok(InternalEvent::CursorPosition(x, y)) =
                     read_internal(&CursorPositionFilter)

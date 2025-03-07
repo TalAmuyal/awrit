@@ -21,7 +21,7 @@ path = "src/lib.rs"
 all-features = true
 
 [features]
-default = ["bracketed-paste", "events", "windows", "derive-more"]
+default = ["bracketed-paste", "events", "libc", "derive-more"]
 
 #! ### Default features
 ## Enables triggering [`Event::Paste`](event::Event::Paste) when pasting text into the terminal.
@@ -58,7 +58,10 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 # Windows dependencies
 [target.'cfg(windows)'.dependencies]
 crossterm_winapi = { version = "0.9.1", optional = true }
-winapi = { version = "0.3.9", optional = true, features = ["winuser", "winerror"] }
+winapi = { version = "0.3.9", optional = true, features = [
+    "winuser",
+    "winerror",
+] }
 
 # UNIX dependencies
 [target.'cfg(unix)'.dependencies]
@@ -67,9 +70,15 @@ filedescriptor = { version = "0.8", optional = true }
 # compatibility.
 libc = { version = "0.2", default-features = false, optional = true }
 mio = { version = "1.0", features = ["os-poll"], optional = true }
-rustix = { version = "0.38.36", default-features = false, features = ["std", "stdio", "termios"] }
+rustix = { version = "0.38.36", default-features = false, features = [
+    "std",
+    "stdio",
+    "termios",
+] }
 signal-hook = { version = "0.3.17", optional = true }
-signal-hook-mio = { version = "0.2.4", features = ["support-v1_0"], optional = true }
+signal-hook-mio = { version = "0.2.4", features = [
+    "support-v1_0",
+], optional = true }
 
 [dev-dependencies]
 async-std = "1.12"
