@@ -18,7 +18,8 @@
     "lint-fix-unsafe": "biome lint --write --unsafe ./src",
     "start": "electron dist/index.cjs",
     "input-test": "bun run ./src/tty/inputTest.ts",
-    "gfx-test": "bun run ./src/tty/graphicsTest.ts"
+    "gfx-test": "bun run ./src/tty/graphicsTest.ts",
+    "bump-crossterm": "git subtree pull --prefix=awrit-native-rs/crates/crossterm --squash https://github.com/crossterm-rs/crossterm master"
   },
   "dependencies": {
     "awrit-native": "github:chase/node-awrit-native#4c393f0c17a7b1837b542cc0b597e1baa7b3b5a5",
