@@ -6,7 +6,7 @@ import { server } from './devServer';
 
 const root = resolve(__dirname, '../../');
 
-await $`mkdir -p dist && ln -s ${join(root, 'node_modules/awrit-native/prebuilds')} ${join(root, 'dist/prebuilds')}`
+await $`mkdir -p dist && ln -s ${join(root, 'node_modules/awrit-native-rs/prebuilds')} ${join(root, 'dist/prebuilds')}`
   .nothrow()
   .quiet();
 
@@ -39,7 +39,6 @@ if (!(await Bun.file(join(root, 'dist/toolbar/index.html')).exists())) {
     .cwd(join(root, 'src/runner'))
     .quiet();
 }
-
 
 const children: [string, Subprocess][] = [];
 const isDev = process.argv.includes('--dev') || process.argv.includes('-d');

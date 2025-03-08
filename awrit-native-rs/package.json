@@ -23,7 +23,7 @@
   },
   "scripts": {
     "artifacts": "napi artifacts",
-    "make": "napi build --platform --release && node scripts/convert-types.js",
+    "make": "napi build --platform --release && node scripts/fix-types.js",
     "ci": "napi build --platform --release",
     "make:debug": "napi build --platform"
   }
