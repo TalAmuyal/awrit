@@ -1,4 +1,4 @@
-use crate::event::InternalEvent;
+use crate::event::{Event, InternalEvent};
 
 /// Interface for filtering an `InternalEvent`.
 pub(crate) trait Filter: Send + Sync + 'static {
@@ -62,12 +62,12 @@ impl Filter for EventFilter {
 }
 
 /// Filter that matches Kitty Graphics responses
-#[derive(Debug)]
-pub struct KittyGraphicsFilter;
+#[derive(Debug, Clone)]
+pub(crate) struct KittyGraphicsFilter;
 
 impl Filter for KittyGraphicsFilter {
     fn eval(&self, event: &InternalEvent) -> bool {
-        matches!(event, InternalEvent::KittyGraphics(_, _))
+        matches!(event, InternalEvent::Event(Event::KittyGraphics(_, _)))
     }
 }
 
@@ -76,8 +76,9 @@ impl Filter for KittyGraphicsFilter {
 mod tests {
     use super::{
         super::Event, CursorPositionFilter, EventFilter, Filter, InternalEvent,
-        KeyboardEnhancementFlagsFilter, PrimaryDeviceAttributesFilter,
+        KeyboardEnhancementFlagsFilter, KittyGraphicsFilter, PrimaryDeviceAttributesFilter,
     };
+    use crate::event::{KeyEvent, KittyGraphicsOkOrError, MouseEvent};
 
     #[derive(Debug, Clone)]
     pub(crate) struct InternalEventFilter;
@@ -113,8 +114,36 @@ mod tests {
 
     #[test]
     fn test_event_filter_filters_events() {
-        assert!(EventFilter.eval(&InternalEvent::Event(Event::Resize(10, 10))));
-        assert!(!EventFilter.eval(&InternalEvent::CursorPosition(0, 0)));
+        let filter = EventFilter;
+
+        // Should match all event types
+        assert!(filter.eval(&InternalEvent::Event(Event::Resize(10, 10))));
+        assert!(filter.eval(&InternalEvent::Event(Event::Key(KeyEvent::default()))));
+        assert!(filter.eval(&InternalEvent::Event(Event::Mouse(MouseEvent::default()))));
+        assert!(filter.eval(&InternalEvent::Event(Event::KittyGraphics(
+            String::new(),
+            crate::event::KittyGraphicsOkOrError::Ok
+        ))));
+
+        // Should not match other internal events
+        assert!(!filter.eval(&InternalEvent::CursorPosition(0, 0)));
+        assert!(!filter.eval(&InternalEvent::PrimaryDeviceAttributes));
+    }
+
+    #[test]
+    fn test_kitty_graphics_filter_filters_kitty_graphics() {
+        let filter = KittyGraphicsFilter;
+
+        // Should match KittyGraphics events
+        assert!(filter.eval(&InternalEvent::Event(Event::KittyGraphics(
+            String::new(),
+            crate::event::KittyGraphicsOkOrError::Ok
+        ))));
+
+        // Should not match other events
+        assert!(!filter.eval(&InternalEvent::Event(Event::Resize(10, 10))));
+        assert!(!filter.eval(&InternalEvent::Event(Event::Key(KeyEvent::default()))));
+        assert!(!filter.eval(&InternalEvent::CursorPosition(0, 0)));
     }
 
     #[test]

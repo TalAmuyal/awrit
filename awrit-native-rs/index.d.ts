@@ -13,6 +13,45 @@ export interface SupportedFeatures {
 export declare function termEnableFeatures(): SupportedFeatures
 /** Disable previously enabled features for the terminal that are necessary for Awrit */
 export declare function termDisableFeatures(features: SupportedFeatures): void
+export type TermEvent =
+  { eventType: 'key', keyEvent: KeyEvent } |
+  { eventType: 'mouse', mouseEvent: MouseEvent } |
+  { eventType: 'focus', focusGained?: boolean, focusLost?: boolean } |
+  { eventType: 'resize', resize: TermResize } |
+  { eventType: 'paste', paste: string } |
+  { eventType: 'escape', escape: TermEscape } |
+  { eventType: 'graphics', graphics: KittyGraphics }
+export interface KeyEvent {
+  /** Key code in Electron accelerator format (lowercase) */
+  code: string
+  /** Array of modifier strings in Electron accelerator format */
+  modifiers: ('ctrl' | 'alt' | 'shift' | 'meta' | 'capslock' | 'numlock' | 'left' | 'right' | 'isautorepeat')[]
+  /** True for keydown and repeat events, false for keyup */
+  down: boolean
+  /** True for keys that should have a keydown event */
+  withKeydown: boolean
+}
+export interface MouseEvent {
+  kind: 'mousedown' | 'mouseup' | 'mousemove' | 'scrollup' | 'scrolldown' | 'scrollleft' | 'scrollright'
+  button?: 'left' | 'middle' | 'right' | 'fourth' | 'fifth' | null
+  x: number
+  y: number
+  /** Array of modifier strings in Electron accelerator format */
+  modifiers: ('ctrl' | 'alt' | 'shift')[]
+}
+export interface TermResize {
+  columns: number
+  rows: number
+}
+export interface TermEscape {
+  kind: 'osc' | 'apc' | 'dcs' | 'pm'
+  text: string
+}
+export interface KittyGraphics {
+  id: string
+  status: string
+}
+export declare function listenForInput(callback: (error: null | Error, event: TermEvent) => void, waitMs?: number | undefined | null): () => void
 export interface DirtyRect {
   x: number
   y: number

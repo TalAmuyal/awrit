@@ -1,7 +1,8 @@
 use crossterm::{
   event::{
-    EnableBracketedPaste, EnableFocusChange, EnableMouseCapture, KeyboardEnhancementFlags,
-    PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
+    DisableBracketedPaste, DisableFocusChange, DisableMouseCapture, EnableBracketedPaste,
+    EnableFocusChange, EnableMouseCapture, KeyboardEnhancementFlags, PopKeyboardEnhancementFlags,
+    PushKeyboardEnhancementFlags,
   },
   execute, queue,
   terminal::{
@@ -63,8 +64,15 @@ pub fn term_enable_features() -> napi::Result<SupportedFeatures> {
 pub fn term_disable_features(features: SupportedFeatures) -> napi::Result<()> {
   let mut stdout = std::io::stdout();
 
+  execute!(
+    stdout,
+    DisableBracketedPaste,
+    DisableFocusChange,
+    DisableMouseCapture
+  )?;
+
   if features.keyboard {
-    queue!(stdout, PopKeyboardEnhancementFlags)?;
+    execute!(stdout, PopKeyboardEnhancementFlags)?;
   }
 
   disable_raw_mode().map_err(|e| napi::Error::from_reason(e.to_string()))

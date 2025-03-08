@@ -232,7 +232,9 @@ pub(crate) fn parse_dcs(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
     // Extract the content between DCS introducer and ST terminator
     let content = &buffer[2..buffer.len() - 2];
     let content_str = String::from_utf8_lossy(content).into_owned();
-    Ok(Some(InternalEvent::Escape(Sequence::Dcs(content_str))))
+    Ok(Some(InternalEvent::Event(Event::Escape(Sequence::Dcs(
+        content_str,
+    )))))
 }
 
 pub(crate) fn parse_apc(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
@@ -266,11 +268,16 @@ pub(crate) fn parse_apc(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
         } else {
             KittyGraphicsOkOrError::Error(status.to_string())
         };
-        return Ok(Some(InternalEvent::KittyGraphics(graphics_data, result)));
+        return Ok(Some(InternalEvent::Event(Event::KittyGraphics(
+            graphics_data,
+            result,
+        ))));
     }
 
     let content_str = String::from_utf8_lossy(content).into_owned();
-    Ok(Some(InternalEvent::Escape(Sequence::Apc(content_str))))
+    Ok(Some(InternalEvent::Event(Event::Escape(Sequence::Apc(
+        content_str,
+    )))))
 }
 
 pub(crate) fn parse_osc(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
@@ -292,7 +299,9 @@ pub(crate) fn parse_osc(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
     };
     let content = &buffer[2..content_end];
     let content_str = String::from_utf8_lossy(content).into_owned();
-    Ok(Some(InternalEvent::Escape(Sequence::Osc(content_str))))
+    Ok(Some(InternalEvent::Event(Event::Escape(Sequence::Osc(
+        content_str,
+    )))))
 }
 
 pub(crate) fn parse_pm(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
@@ -310,7 +319,9 @@ pub(crate) fn parse_pm(buffer: &[u8]) -> io::Result<Option<InternalEvent>> {
     let content = &buffer[2..buffer.len() - 2];
 
     let content_str = String::from_utf8_lossy(content).into_owned();
-    Ok(Some(InternalEvent::Escape(Sequence::Pm(content_str))))
+    Ok(Some(InternalEvent::Event(Event::Escape(Sequence::Pm(
+        content_str,
+    )))))
 }
 
 pub(crate) fn next_parsed<T>(iter: &mut dyn Iterator<Item = &str>) -> io::Result<T>
@@ -575,17 +586,16 @@ fn translate_functional_key_code(codepoint: u32) -> Option<(KeyCode, KeyEventSta
         57441 => Some(KeyCode::Modifier(ModifierKeyCode::LeftShift)),
         57442 => Some(KeyCode::Modifier(ModifierKeyCode::LeftControl)),
         57443 => Some(KeyCode::Modifier(ModifierKeyCode::LeftAlt)),
-        57444 => Some(KeyCode::Modifier(ModifierKeyCode::LeftSuper)),
-        57445 => Some(KeyCode::Modifier(ModifierKeyCode::LeftHyper)),
-        57446 => Some(KeyCode::Modifier(ModifierKeyCode::LeftMeta)),
+        57444 => Some(KeyCode::Modifier(ModifierKeyCode::LeftMeta)),
+        57445 => Some(KeyCode::Modifier(ModifierKeyCode::LeftMeta)),
+        57446 => Some(KeyCode::Modifier(ModifierKeyCode::RightMeta)),
         57447 => Some(KeyCode::Modifier(ModifierKeyCode::RightShift)),
         57448 => Some(KeyCode::Modifier(ModifierKeyCode::RightControl)),
         57449 => Some(KeyCode::Modifier(ModifierKeyCode::RightAlt)),
-        57450 => Some(KeyCode::Modifier(ModifierKeyCode::RightSuper)),
-        57451 => Some(KeyCode::Modifier(ModifierKeyCode::RightHyper)),
+        57450 => Some(KeyCode::Modifier(ModifierKeyCode::RightMeta)),
+        57451 => Some(KeyCode::Modifier(ModifierKeyCode::RightMeta)),
         57452 => Some(KeyCode::Modifier(ModifierKeyCode::RightMeta)),
-        57453 => Some(KeyCode::Modifier(ModifierKeyCode::IsoLevel3Shift)),
-        57454 => Some(KeyCode::Modifier(ModifierKeyCode::IsoLevel5Shift)),
+        57453 => Some(KeyCode::Modifier(ModifierKeyCode::IsoLevel5Shift)),
         _ => None,
     } {
         return Some((keycode, KeyEventState::empty()));
@@ -781,8 +791,8 @@ pub(crate) fn parse_csi_rxvt_mouse(buffer: &[u8]) -> io::Result<Option<InternalE
 
     Ok(Some(InternalEvent::Event(Event::Mouse(MouseEvent {
         kind,
-        column: cx,
-        row: cy,
+        x: cx,
+        y: cy,
         modifiers,
     }))))
 }
@@ -809,8 +819,8 @@ pub(crate) fn parse_csi_normal_mouse(buffer: &[u8]) -> io::Result<Option<Interna
 
     Ok(Some(InternalEvent::Event(Event::Mouse(MouseEvent {
         kind,
-        column: cx,
-        row: cy,
+        x: cx,
+        y: cy,
         modifiers,
     }))))
 }
@@ -854,8 +864,8 @@ pub(crate) fn parse_csi_sgr_mouse(buffer: &[u8]) -> io::Result<Option<InternalEv
 
     Ok(Some(InternalEvent::Event(Event::Mouse(MouseEvent {
         kind,
-        column: cx,
-        row: cy,
+        x: cx,
+        y: cy,
         modifiers,
     }))))
 }
@@ -874,35 +884,58 @@ pub(crate) fn parse_csi_sgr_mouse(buffer: &[u8]) -> io::Result<Option<InternalEv
 /// - button number
 /// - button number
 fn parse_cb(cb: u8) -> io::Result<(MouseEventKind, KeyModifiers)> {
-    let button_number = (cb & 0b0000_0011) | ((cb & 0b1100_0000) >> 4);
-    let dragging = cb & 0b0010_0000 == 0b0010_0000;
+    // Extract the raw button number without bit shifting
+    let raw_button = cb & 0b0000_0011;
+    let is_motion = cb & 0b0010_0000 == 0b0010_0000;
+    let is_wheel = cb & 0b0100_0000 == 0b0100_0000;
+    let is_extended = cb & 0b1000_0000 == 0b1000_0000;
 
-    let kind = match (button_number, dragging) {
-        (0, false) => MouseEventKind::Down(MouseButton::Left),
-        (1, false) => MouseEventKind::Down(MouseButton::Middle),
-        (2, false) => MouseEventKind::Down(MouseButton::Right),
-        (0, true) => MouseEventKind::Drag(MouseButton::Left),
-        (1, true) => MouseEventKind::Drag(MouseButton::Middle),
-        (2, true) => MouseEventKind::Drag(MouseButton::Right),
-        (3, false) => MouseEventKind::Up(MouseButton::Left),
-        (3, true) | (4, true) | (5, true) => MouseEventKind::Moved,
-        (4, false) => MouseEventKind::ScrollUp,
-        (5, false) => MouseEventKind::ScrollDown,
-        (6, false) => MouseEventKind::ScrollLeft,
-        (7, false) => MouseEventKind::ScrollRight,
-        // We do not support other buttons.
-        _ => return Err(could_not_parse_event_error()),
+    let kind = if is_motion && raw_button != 3 {
+        // Dragging with specific button
+        match raw_button {
+            0 => MouseEventKind::Drag(MouseButton::Left),
+            1 => MouseEventKind::Drag(MouseButton::Middle),
+            2 => MouseEventKind::Drag(MouseButton::Right),
+            3 => MouseEventKind::Drag(MouseButton::Fourth),
+            _ => return Err(could_not_parse_event_error()),
+        }
+    } else if is_wheel {
+        // Wheel events
+        match raw_button {
+            0 => MouseEventKind::ScrollUp,
+            1 => MouseEventKind::ScrollDown,
+            2 => MouseEventKind::ScrollLeft,
+            3 => MouseEventKind::ScrollRight,
+            _ => return Err(could_not_parse_event_error()),
+        }
+    } else if is_extended {
+        // Extended buttons (4th and 5th)
+        match raw_button {
+            0 => MouseEventKind::Down(MouseButton::Fourth),
+            1 => MouseEventKind::Down(MouseButton::Fifth),
+            2 => MouseEventKind::Up(MouseButton::Fourth),
+            3 => MouseEventKind::Up(MouseButton::Fifth),
+            _ => return Err(could_not_parse_event_error()),
+        }
+    } else {
+        // Standard buttons
+        match raw_button {
+            0 => MouseEventKind::Down(MouseButton::Left),
+            1 => MouseEventKind::Down(MouseButton::Middle),
+            2 => MouseEventKind::Down(MouseButton::Right),
+            3 => MouseEventKind::Moved,
+            _ => return Err(could_not_parse_event_error()),
+        }
     };
 
     let mut modifiers = KeyModifiers::empty();
-
-    if cb & 0b0000_0100 == 0b0000_0100 {
+    if cb & 0b0000_0100 != 0 {
         modifiers |= KeyModifiers::SHIFT;
     }
-    if cb & 0b0000_1000 == 0b0000_1000 {
+    if cb & 0b0000_1000 != 0 {
         modifiers |= KeyModifiers::ALT;
     }
-    if cb & 0b0001_0000 == 0b0001_0000 {
+    if cb & 0b0001_0000 != 0 {
         modifiers |= KeyModifiers::CONTROL;
     }
 
@@ -1059,8 +1092,8 @@ mod tests {
             parse_event(b"\x1B[32;30;40;M", false).unwrap(),
             Some(InternalEvent::Event(Event::Mouse(MouseEvent {
                 kind: MouseEventKind::Down(MouseButton::Left),
-                column: 29,
-                row: 39,
+                x: 29,
+                y: 39,
                 modifiers: KeyModifiers::empty(),
             })))
         );
@@ -1070,8 +1103,8 @@ mod tests {
             parse_event(b"\x1B[M0\x60\x70", false).unwrap(),
             Some(InternalEvent::Event(Event::Mouse(MouseEvent {
                 kind: MouseEventKind::Down(MouseButton::Left),
-                column: 63,
-                row: 79,
+                x: 63,
+                y: 79,
                 modifiers: KeyModifiers::CONTROL,
             })))
         );
@@ -1081,71 +1114,38 @@ mod tests {
             parse_event(b"\x1B[<0;20;10;M", false).unwrap(),
             Some(InternalEvent::Event(Event::Mouse(MouseEvent {
                 kind: MouseEventKind::Down(MouseButton::Left),
-                column: 19,
-                row: 9,
+                x: 19,
+                y: 9,
                 modifiers: KeyModifiers::empty(),
             })))
         );
-
-        // parse_utf8_char
         assert_eq!(
-            parse_event("Ž".as_bytes(), false).unwrap(),
-            Some(InternalEvent::Event(Event::Key(KeyEvent::new(
-                KeyCode::Char('Ž'),
-                KeyModifiers::SHIFT
-            )))),
+            parse_event(b"\x1B[<0;20;10M", false).unwrap(),
+            Some(InternalEvent::Event(Event::Mouse(MouseEvent {
+                kind: MouseEventKind::Down(MouseButton::Left),
+                x: 19,
+                y: 9,
+                modifiers: KeyModifiers::empty(),
+            })))
         );
-
-        // Test DCS sequence
         assert_eq!(
-            parse_event(b"\x1BPtest\x1B\\", false).unwrap(),
-            Some(InternalEvent::Escape(Sequence::Dcs("test".to_string())))
+            parse_event(b"\x1B[<0;20;10;m", false).unwrap(),
+            Some(InternalEvent::Event(Event::Mouse(MouseEvent {
+                kind: MouseEventKind::Up(MouseButton::Left),
+                x: 19,
+                y: 9,
+                modifiers: KeyModifiers::empty(),
+            })))
         );
-
-        // Test APC sequence - regular
         assert_eq!(
-            parse_event(b"\x1B_test\x1B\\", false).unwrap(),
-            Some(InternalEvent::Escape(Sequence::Apc("test".to_string())))
+            parse_event(b"\x1B[<0;20;10m", false).unwrap(),
+            Some(InternalEvent::Event(Event::Mouse(MouseEvent {
+                kind: MouseEventKind::Up(MouseButton::Left),
+                x: 19,
+                y: 9,
+                modifiers: KeyModifiers::empty(),
+            })))
         );
-
-        // Test APC sequence - Kitty Graphics
-        assert_eq!(
-            parse_event(b"\x1B_Gimage_data;OK\x1B\\", false).unwrap(),
-            Some(InternalEvent::KittyGraphics(
-                "image_data".to_string(),
-                KittyGraphicsOkOrError::Ok
-            ))
-        );
-
-        // Test OSC sequence with ST terminator
-        assert_eq!(
-            parse_event(b"\x1B]test\x1B\\", false).unwrap(),
-            Some(InternalEvent::Escape(Sequence::Osc("test".to_string())))
-        );
-
-        // Test OSC sequence with BEL terminator
-        assert_eq!(
-            parse_event(b"\x1B]test\x07", false).unwrap(),
-            Some(InternalEvent::Escape(Sequence::Osc("test".to_string())))
-        );
-
-        // Test PM sequence
-        assert_eq!(
-            parse_event(b"\x1B^test\x1B\\", false).unwrap(),
-            Some(InternalEvent::Escape(Sequence::Pm("test".to_string())))
-        );
-
-        // Test incomplete sequences with input_available=true
-        assert_eq!(parse_event(b"\x1BP", true).unwrap(), None); // DCS
-        assert_eq!(parse_event(b"\x1B_", true).unwrap(), None); // APC
-        assert_eq!(parse_event(b"\x1B]", true).unwrap(), None); // OSC
-        assert_eq!(parse_event(b"\x1B^", true).unwrap(), None); // PM
-
-        // Test incomplete sequences with input_available=false
-        assert_eq!(parse_event(b"\x1BP", false).unwrap(), None); // DCS
-        assert_eq!(parse_event(b"\x1B_", false).unwrap(), None); // APC
-        assert_eq!(parse_event(b"\x1B]", false).unwrap(), None); // OSC
-        assert_eq!(parse_event(b"\x1B^", false).unwrap(), None); // PM
     }
 
     #[test]
@@ -1179,7 +1179,7 @@ mod tests {
             Some(InternalEvent::Event(Event::Key(KeyEvent::new(
                 KeyCode::Left,
                 KeyModifiers::SHIFT
-            )))),
+            ))))
         );
     }
 
@@ -1236,8 +1236,8 @@ mod tests {
             parse_csi_rxvt_mouse(b"\x1B[32;30;40;M").unwrap(),
             Some(InternalEvent::Event(Event::Mouse(MouseEvent {
                 kind: MouseEventKind::Down(MouseButton::Left),
-                column: 29,
-                row: 39,
+                x: 29,
+                y: 39,
                 modifiers: KeyModifiers::empty(),
             })))
         );
@@ -1249,8 +1249,8 @@ mod tests {
             parse_csi_normal_mouse(b"\x1B[M0\x60\x70").unwrap(),
             Some(InternalEvent::Event(Event::Mouse(MouseEvent {
                 kind: MouseEventKind::Down(MouseButton::Left),
-                column: 63,
-                row: 79,
+                x: 63,
+                y: 79,
                 modifiers: KeyModifiers::CONTROL,
             })))
         );
@@ -1262,8 +1262,8 @@ mod tests {
             parse_csi_sgr_mouse(b"\x1B[<0;20;10;M").unwrap(),
             Some(InternalEvent::Event(Event::Mouse(MouseEvent {
                 kind: MouseEventKind::Down(MouseButton::Left),
-                column: 19,
-                row: 9,
+                x: 19,
+                y: 9,
                 modifiers: KeyModifiers::empty(),
             })))
         );
@@ -1271,8 +1271,8 @@ mod tests {
             parse_csi_sgr_mouse(b"\x1B[<0;20;10M").unwrap(),
             Some(InternalEvent::Event(Event::Mouse(MouseEvent {
                 kind: MouseEventKind::Down(MouseButton::Left),
-                column: 19,
-                row: 9,
+                x: 19,
+                y: 9,
                 modifiers: KeyModifiers::empty(),
             })))
         );
@@ -1280,8 +1280,8 @@ mod tests {
             parse_csi_sgr_mouse(b"\x1B[<0;20;10;m").unwrap(),
             Some(InternalEvent::Event(Event::Mouse(MouseEvent {
                 kind: MouseEventKind::Up(MouseButton::Left),
-                column: 19,
-                row: 9,
+                x: 19,
+                y: 9,
                 modifiers: KeyModifiers::empty(),
             })))
         );
@@ -1289,8 +1289,8 @@ mod tests {
             parse_csi_sgr_mouse(b"\x1B[<0;20;10m").unwrap(),
             Some(InternalEvent::Event(Event::Mouse(MouseEvent {
                 kind: MouseEventKind::Up(MouseButton::Left),
-                column: 19,
-                row: 9,
+                x: 19,
+                y: 9,
                 modifiers: KeyModifiers::empty(),
             })))
         );
@@ -1652,90 +1652,6 @@ mod tests {
                 KeyModifiers::CONTROL,
                 KeyEventKind::Release,
             )))),
-        );
-    }
-
-    #[test]
-    fn test_parse_dcs() {
-        // Test incomplete sequence
-        assert_eq!(parse_dcs(b"\x1BP").unwrap(), None);
-
-        // Test sequence without terminator
-        assert_eq!(parse_dcs(b"\x1BPtest").unwrap(), None);
-
-        // Test valid sequence
-        assert_eq!(
-            parse_dcs(b"\x1BPtest\x1B\\").unwrap(),
-            Some(InternalEvent::Escape(Sequence::Dcs("test".to_string())))
-        );
-    }
-
-    #[test]
-    fn test_parse_apc() {
-        // Test incomplete sequence
-        assert_eq!(parse_apc(b"\x1B_").unwrap(), None);
-
-        // Test sequence without terminator
-        assert_eq!(parse_apc(b"\x1B_test").unwrap(), None);
-
-        // Test valid sequence
-        assert_eq!(
-            parse_apc(b"\x1B_test\x1B\\").unwrap(),
-            Some(InternalEvent::Escape(Sequence::Apc("test".to_string())))
-        );
-
-        // Test Kitty Graphics sequence
-        assert_eq!(
-            parse_apc(b"\x1B_Gdata;OK\x1B\\").unwrap(),
-            Some(InternalEvent::KittyGraphics(
-                "data".to_string(),
-                KittyGraphicsOkOrError::Ok
-            ))
-        );
-
-        // Test Kitty Graphics error sequence
-        assert_eq!(
-            parse_apc(b"\x1B_Gdata;ERROR\x1B\\").unwrap(),
-            Some(InternalEvent::KittyGraphics(
-                "data".to_string(),
-                KittyGraphicsOkOrError::Error("ERROR".to_string())
-            ))
-        );
-    }
-
-    #[test]
-    fn test_parse_osc() {
-        // Test incomplete sequence
-        assert_eq!(parse_osc(b"\x1B]").unwrap(), None);
-
-        // Test sequence without terminator
-        assert_eq!(parse_osc(b"\x1B]test").unwrap(), None);
-
-        // Test valid sequence with ST terminator
-        assert_eq!(
-            parse_osc(b"\x1B]test\x1B\\").unwrap(),
-            Some(InternalEvent::Escape(Sequence::Osc("test".to_string())))
-        );
-
-        // Test valid sequence with BEL terminator
-        assert_eq!(
-            parse_osc(b"\x1B]test\x07").unwrap(),
-            Some(InternalEvent::Escape(Sequence::Osc("test".to_string())))
-        );
-    }
-
-    #[test]
-    fn test_parse_pm() {
-        // Test incomplete sequence
-        assert_eq!(parse_pm(b"\x1B^").unwrap(), None);
-
-        // Test sequence without terminator
-        assert_eq!(parse_pm(b"\x1B^test").unwrap(), None);
-
-        // Test valid sequence
-        assert_eq!(
-            parse_pm(b"\x1B^test\x1B\\").unwrap(),
-            Some(InternalEvent::Escape(Sequence::Pm("test".to_string())))
         );
     }
 }

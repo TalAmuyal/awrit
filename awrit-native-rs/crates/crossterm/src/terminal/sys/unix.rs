@@ -343,7 +343,7 @@ pub struct KittyGraphicsSupport {
 /// 3. Frame composition
 pub fn query_kitty_graphics_support() -> io::Result<KittyGraphicsSupport> {
     use crate::event::{
-        filter::KittyGraphicsFilter, poll_internal, read_internal, InternalEvent,
+        filter::KittyGraphicsFilter, poll_internal, read_internal, Event, InternalEvent,
         KittyGraphicsOkOrError,
     };
     use std::io::Write;
@@ -355,7 +355,7 @@ pub fn query_kitty_graphics_support() -> io::Result<KittyGraphicsSupport> {
     // Test 2: Load frame 2
     const LOAD_FRAME: &[u8] = b"\x1B_Ga=f,i=4294111295,f=24,t=d,s=1,v=1,z=1,r=2;AAAA\x1B\\";
     // Test 3: Composite frame 2 onto frame 1
-    const COMPOSITE_FRAMES: &[u8] = b"\x1B_Ga=c,c=2,r=1\x1B\\";
+    const COMPOSITE_FRAMES: &[u8] = b"\x1B_Ga=c,C=1,i=4294111295,r=2,c=1,x=0,y=0,w=1,h=1\x1B\\";
 
     let mut support = KittyGraphicsSupport {
         images: false,
@@ -371,7 +371,7 @@ pub fn query_kitty_graphics_support() -> io::Result<KittyGraphicsSupport> {
     stdout.flush()?;
 
     if poll_internal(Some(Duration::from_millis(100)), &filter)? {
-        if let Ok(InternalEvent::KittyGraphics(_, status)) = read_internal(&filter) {
+        if let Ok(InternalEvent::Event(Event::KittyGraphics(_, status))) = read_internal(&filter) {
             support.images = matches!(status, KittyGraphicsOkOrError::Ok);
         }
     }
@@ -382,7 +382,9 @@ pub fn query_kitty_graphics_support() -> io::Result<KittyGraphicsSupport> {
         stdout.flush()?;
 
         if poll_internal(Some(Duration::from_millis(100)), &filter)? {
-            if let Ok(InternalEvent::KittyGraphics(_, status)) = read_internal(&filter) {
+            if let Ok(InternalEvent::Event(Event::KittyGraphics(_, status))) =
+                read_internal(&filter)
+            {
                 support.load_frame = matches!(status, KittyGraphicsOkOrError::Ok);
             }
         }
@@ -393,15 +395,13 @@ pub fn query_kitty_graphics_support() -> io::Result<KittyGraphicsSupport> {
             stdout.flush()?;
 
             if poll_internal(Some(Duration::from_millis(100)), &filter)? {
-                if let Ok(InternalEvent::KittyGraphics(_, status)) = read_internal(&filter) {
+                if let Ok(InternalEvent::Event(Event::KittyGraphics(_, status))) =
+                    read_internal(&filter)
+                {
                     support.composite_frame = matches!(status, KittyGraphicsOkOrError::Ok);
                 }
             }
         }
-
-        // Clean up - delete the test image
-        stdout.write_all(b"\x1B_Ga=d\x1B\\")?;
-        stdout.flush()?;
     }
 
     Ok(support)

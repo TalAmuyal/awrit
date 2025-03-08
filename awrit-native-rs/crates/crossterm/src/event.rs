@@ -566,6 +566,10 @@ pub enum Event {
     /// An resize event with new dimensions after resize (columns, rows).
     /// **Note** that resize events can occur in batches.
     Resize(u16, u16),
+    /// A Kitty Graphics protocol response
+    KittyGraphics(String, KittyGraphicsOkOrError),
+    /// An escape sequence
+    Escape(Sequence),
 }
 
 /// Represents a sequence for an escape code
@@ -799,9 +803,9 @@ pub struct MouseEvent {
     /// The kind of mouse event that was caused.
     pub kind: MouseEventKind,
     /// The column that the event occurred on.
-    pub column: u16,
+    pub x: u16,
     /// The row that the event occurred on.
-    pub row: u16,
+    pub y: u16,
     /// The key modifiers active when the event occurred.
     pub modifiers: KeyModifiers,
 }
@@ -848,6 +852,10 @@ pub enum MouseButton {
     Right,
     /// Middle mouse button.
     Middle,
+    /// Fourth mouse button.
+    Fourth,
+    /// Fifth mouse button.
+    Fifth,
 }
 
 bitflags! {
@@ -865,6 +873,8 @@ bitflags! {
         const SUPER = 0b0000_1000;
         const HYPER = 0b0001_0000;
         const META = 0b0010_0000;
+        const CAPS_LOCK = 0b0100_0000;
+        const NUM_LOCK = 0b1000_0000;
         const NONE = 0b0000_0000;
     }
 }
@@ -1504,9 +1514,6 @@ pub(crate) enum InternalEvent {
     /// Attributes and architectural class of the terminal.
     #[cfg(unix)]
     PrimaryDeviceAttributes,
-
-    KittyGraphics(String, KittyGraphicsOkOrError),
-    Escape(Sequence),
 }
 
 #[cfg(test)]
@@ -1657,8 +1664,8 @@ mod tests {
         KeyEvent::new_with_kind(KeyCode::Esc, KeyModifiers::empty(), KeyEventKind::Repeat);
     const MOUSE_CLICK: MouseEvent = MouseEvent {
         kind: MouseEventKind::Down(MouseButton::Left),
-        column: 1,
-        row: 1,
+        x: 1,
+        y: 1,
         modifiers: KeyModifiers::empty(),
     };
 

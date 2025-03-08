@@ -12,8 +12,10 @@ use nix::unistd::ftruncate;
 use std::num::NonZeroUsize;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub mod term;
+mod term;
 pub use term::*;
+mod input;
+pub use input::*;
 
 #[napi(object)]
 pub struct DirtyRect {

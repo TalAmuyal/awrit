@@ -1,6 +1,6 @@
 {
   "name": "awrit-native-rs",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
@@ -19,8 +19,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@napi-rs/cli": "^2.18.4",
-    "ava": "^6.0.1"
+    "@napi-rs/cli": "^2.18.4"
   },
   "ava": {
     "timeout": "3m"
@@ -30,11 +29,8 @@
   },
   "scripts": {
     "artifacts": "napi artifacts",
-    "make": "napi build --platform --release",
-    "make:debug": "napi build --platform",
-    "prepublishOnly": "napi prepublish -t npm",
-    "test": "ava",
-    "universal": "napi universal",
-    "version": "napi version"
+    "make": "napi build --platform --release && node scripts/convert-types.js",
+    "make:debug": "napi build --platform && node scripts/convert-types.js",
+    "prepublishOnly": "napi prepublish -t npm"
   }
 }
