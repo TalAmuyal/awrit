@@ -72,7 +72,7 @@ mod tests {
         super::Event, CursorPositionFilter, EventFilter, Filter, InternalEvent,
         KeyboardEnhancementFlagsFilter, KittyGraphicsFilter, PrimaryDeviceAttributesFilter,
     };
-    use crate::event::{KeyEvent, KittyGraphicsOkOrError, MouseEvent};
+    use crate::event::{KeyEvent, MouseEvent};
 
     #[derive(Debug, Clone)]
     pub(crate) struct InternalEventFilter;

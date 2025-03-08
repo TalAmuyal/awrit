@@ -968,6 +968,17 @@ impl KeyEvent {
     }
 }
 
+impl Default for KeyEvent {
+    fn default() -> Self {
+        KeyEvent {
+            code: KeyCode::Char(' '),
+            modifiers: KeyModifiers::empty(),
+            kind: KeyEventKind::Press,
+            state: KeyEventState::empty(),
+        }
+    }
+}
+
 impl From<KeyCode> for KeyEvent {
     fn from(code: KeyCode) -> Self {
         KeyEvent {
@@ -1422,6 +1433,28 @@ pub(crate) enum InternalEvent {
     /// Attributes and architectural class of the terminal.
     #[cfg(unix)]
     PrimaryDeviceAttributes,
+}
+
+impl MouseEvent {
+    pub const fn new(kind: MouseEventKind, x: u16, y: u16, modifiers: KeyModifiers) -> MouseEvent {
+        MouseEvent {
+            kind,
+            x,
+            y,
+            modifiers,
+        }
+    }
+}
+
+impl Default for MouseEvent {
+    fn default() -> Self {
+        MouseEvent {
+            kind: MouseEventKind::Moved,
+            x: 0,
+            y: 0,
+            modifiers: KeyModifiers::empty(),
+        }
+    }
 }
 
 #[cfg(test)]
