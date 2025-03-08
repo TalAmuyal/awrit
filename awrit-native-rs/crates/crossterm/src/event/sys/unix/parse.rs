@@ -1524,15 +1524,15 @@ mod tests {
         assert_eq!(
             parse_csi_u_encoded_key_code(b"\x1B[57450u").unwrap(),
             Some(InternalEvent::Event(Event::Key(KeyEvent::new(
-                KeyCode::Modifier(ModifierKeyCode::RightSuper),
-                KeyModifiers::SUPER,
+                KeyCode::Modifier(ModifierKeyCode::RightMeta),
+                KeyModifiers::META,
             )))),
         );
         assert_eq!(
             parse_csi_u_encoded_key_code(b"\x1B[57451u").unwrap(),
             Some(InternalEvent::Event(Event::Key(KeyEvent::new(
-                KeyCode::Modifier(ModifierKeyCode::RightHyper),
-                KeyModifiers::HYPER,
+                KeyCode::Modifier(ModifierKeyCode::RightMeta),
+                KeyModifiers::META,
             )))),
         );
         assert_eq!(

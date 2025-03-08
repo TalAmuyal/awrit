@@ -54,6 +54,8 @@
 //!             #[cfg(feature = "bracketed-paste")]
 //!             Event::Paste(data) => println!("{:?}", data),
 //!             Event::Resize(width, height) => println!("New size {}x{}", width, height),
+//!             Event::KittyGraphics(data, status) => println!("KittyGraphics: {} {:?}", data, status),
+//!             Event::Escape(sequence) => println!("Escape sequence: {:?}", sequence),
 //!         }
 //!     }
 //!     execute!(
@@ -100,6 +102,8 @@
 //!                 #[cfg(feature = "bracketed-paste")]
 //!                 Event::Paste(data) => println!("Pasted {:?}", data),
 //!                 Event::Resize(width, height) => println!("New size {}x{}", width, height),
+//!                 Event::KittyGraphics(data, status) => println!("KittyGraphics: {} {:?}", data, status),
+//!                 Event::Escape(sequence) => println!("Escape sequence: {:?}", sequence),
 //!             }
 //!         } else {
 //!             // Timeout expired and no `Event` is available
