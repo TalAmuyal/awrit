@@ -24,9 +24,6 @@
   "ava": {
     "timeout": "3m"
   },
-  "engines": {
-    "node": ">= 22"
-  },
   "scripts": {
     "artifacts": "napi artifacts",
     "make": "napi build --platform --release && node scripts/convert-types.js",
