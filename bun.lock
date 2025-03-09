@@ -12,7 +12,7 @@
       "devDependencies": {
         "@biomejs/biome": "1.9.4",
         "@types/node": "^22.13.8",
-        "electron": "35.0.0-beta.12",
+        "electron": "35.0.0",
         "typescript": "^5.8.2",
       },
     },
@@ -38,7 +38,6 @@
     "awrit-native-rs",
   ],
   "patchedDependencies": {
-    "lru-cache@5.1.1": "patches/lru-cache@5.1.1.patch",
     "solid-js@1.9.5": "patches/solid-js@1.9.5.patch",
   },
   "packages": {
@@ -306,7 +305,7 @@
 
     "detect-node": ["detect-node@2.1.0", "", {}, "sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g=="],
 
-    "electron": ["electron@35.0.0-beta.12", "", { "dependencies": { "@electron/get": "^2.0.0", "@types/node": "^22.7.7", "extract-zip": "^2.0.1" }, "bin": { "electron": "cli.js" } }, "sha512-p7TaVKGbowiDg0ltiPZ4ldlQy4/JBURHs2Fyr34Ul82wXg930pLbWA7RUV0UXX3mOaeYYDBKP04eLLVHZi6JdQ=="],
+    "electron": ["electron@35.0.0", "", { "dependencies": { "@electron/get": "^2.0.0", "@types/node": "^22.7.7", "extract-zip": "^2.0.1" }, "bin": { "electron": "cli.js" } }, "sha512-mwNQNktYLPnUWZVR8iNkfWCBjmM5e2/CmB1rhACwE9ASDbVU7CYPgp/jLUB3bj/LyQsfSuubD82OUite6SN8Uw=="],
 
     "electron-chrome-context-menu": ["electron-chrome-context-menu@1.1.0", "", { "peerDependencies": { "electron": ">=9.0.0" } }, "sha512-Q2sITVT+xkZ3ru/ZGjb0+tZiAXfZ46KNae0nVZdxI/RGqlM+xRcSgpkP3TmUK/Y205Q7Z5d0f4yWzjgsPWIF/Q=="],
 

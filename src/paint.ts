@@ -3,11 +3,16 @@ import { ShmGraphicBuffer } from 'awrit-native-rs';
 import type { InitialFrame, AnimationFrame } from './tty/kittyGraphics';
 import { console_ } from './console';
 import { options } from './args';
+import { dpi_scale, scaleSize } from './dpi';
 
 type PaintedContent = {
   frame?: AnimationFrame;
   buffer?: ShmGraphicBuffer;
   size?: number;
+  expectedWinSize?: {
+    width: number;
+    height: number;
+  };
 };
 
 const weakPaintedContents_ = new WeakMap<BrowserWindow, PaintedContent>();
@@ -33,6 +38,44 @@ export function registerPaintedContent(
 
   contents.on('paint', async (_event, _dirty, image) => {
     const imageSize = image.getSize();
+
+    // calculate the DPI on the first paint attempt and resize
+    if (dpi_scale.current == null) {
+      const [width, height] = w.getContentSize();
+      dpi_scale.current = imageSize.width / width;
+      const newSize = scaleSize({
+        width,
+        height: height * 2,
+      });
+      w.setContentSize(newSize.width, newSize.height);
+      result.expectedWinSize = {
+        width,
+        height: height * 2,
+      };
+      return;
+    }
+    if (result.expectedWinSize == null) {
+      const [width, height] = w.getContentSize();
+      const newSize = scaleSize({
+        width,
+        height,
+      });
+      w.setContentSize(newSize.width, newSize.height);
+      result.expectedWinSize = {
+        width,
+        height,
+      };
+      return;
+    }
+    if (
+      result.expectedWinSize == null ||
+      imageSize.width > result.expectedWinSize.width ||
+      imageSize.height > result.expectedWinSize.height
+    ) {
+      console_.error('unexpected size mismatch', result.expectedWinSize, imageSize);
+      return;
+    }
+
     const imageBufferSize = imageSize.width * imageSize.height * 4;
     if (result.buffer == null) {
       result.buffer = new ShmGraphicBuffer(imageBufferSize);

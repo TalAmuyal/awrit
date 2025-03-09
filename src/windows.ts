@@ -42,7 +42,7 @@ export const focusedView: {
 
 export const windowViews = new WeakMap<BrowserWindow, WindowView>();
 
-export const TOOLBAR_HEIGHT = 42;
+export const TOOLBAR_HEIGHT = 40;
 
 export const managedViews: WindowView[] = [];
 
@@ -79,6 +79,9 @@ export async function createWindowWithToolbar(
     show: false,
     frame: false,
     paintWhenInitiallyHidden: true,
+    hiddenInMissionControl: true,
+    acceptFirstMouse: true,
+    skipTaskbar: true,
   };
 
   const toolbar = new BrowserWindow(
@@ -125,7 +128,10 @@ export async function createWindowWithToolbar(
 
   // Register for painting
   registerPaintedContent(containerFrame, toolbar, { x: 0, y: 0 });
-  registerPaintedContent(containerFrame, content, { x: 0, y: TOOLBAR_HEIGHT + 1 });
+  registerPaintedContent(containerFrame, content, {
+    x: 0,
+    y: TOOLBAR_HEIGHT + 1,
+  });
 
   // Add to extensions
   extensionsPromise.then((extensions) => {
@@ -138,7 +144,10 @@ export async function createWindowWithToolbar(
       console_.error('toolbar loaded');
     });
     toolbar.webContents.once('did-fail-load', (event, errorCode, errorDescription) => {
-      console_.error('toolbar failed to load', { errorCode, errorDescription });
+      console_.error('toolbar failed to load', {
+        errorCode,
+        errorDescription,
+      });
     });
     toolbar.webContents.loadURL(`http://localhost:${TOOLBAR_PORT}`);
     toolbar.webContents.openDevTools({

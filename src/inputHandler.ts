@@ -1,15 +1,13 @@
 import type { TermEvent } from 'awrit-native-rs';
 import { focusedView, TOOLBAR_HEIGHT } from './windows';
-import { DPI_SCALE } from './dpi';
+import { dpi_scale } from './dpi';
 
 const WHEEL_DELTA = 100;
 
-const isAsciiRegex = /\p{ASCII}/u;
-
 const mouseEventTypes = ['mouseDown', 'mouseUp', 'mouseMove'] as const;
 
-function isSimpleMouseEvent(kind: string): kind is (typeof mouseEventTypes)[number] {
-  return mouseEventTypes.includes(kind as any);
+function isSimpleMouseEvent(kind: unknown): kind is (typeof mouseEventTypes)[number] {
+  return mouseEventTypes.includes(kind as (typeof mouseEventTypes)[number]);
 }
 
 export function handleInput(evt: TermEvent) {
@@ -46,6 +44,7 @@ export function handleInput(evt: TermEvent) {
 
     case 'mouse': {
       const { kind, button, x, y, modifiers } = evt.mouseEvent;
+      const DPI_SCALE = dpi_scale.current ?? 1;
       const adjustedX = Math.floor((x ?? 0) / DPI_SCALE);
       const yOffset = y > TOOLBAR_HEIGHT ? TOOLBAR_HEIGHT : 0;
       const adjustedY = Math.floor(((y ?? yOffset) - yOffset) / DPI_SCALE);
@@ -93,13 +92,13 @@ export function handleInput(evt: TermEvent) {
         if (focusedContent !== view.focusedContent) {
           if (focusedContent === view.content.webContents) {
             view.content.blurWebView();
-            view.toolbar.focusOnWebView();
+            view.content.focusOnWebView();
           } else {
             view.toolbar.blurWebView();
-            view.content.focusOnWebView();
+            view.toolbar.focusOnWebView();
           }
           view.focusedContent = focusedContent;
-          view.focusedContent.focus();
+          // view.focusedContent.focus();
         }
       }
       break;

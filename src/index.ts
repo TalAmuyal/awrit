@@ -10,7 +10,6 @@ import {
 import * as out from './tty/output';
 import { handleInput } from './inputHandler';
 import { focusedView, windowSize, createWindowWithToolbar } from './windows';
-import { DPI_SCALE } from './dpi';
 import { console_ } from './console';
 import { options, showHelp } from './args';
 import { execSync } from 'node:child_process';
@@ -129,10 +128,6 @@ function setup() {
 
 setup();
 
-// Prevents high DPI scaling based on host display
-app.commandLine.appendSwitch('force-device-scale-factor', DPI_SCALE.toString());
-app.commandLine.appendSwitch('high-dpi-support', 'true');
-
 // Disable Electron's stdout logging
 app.commandLine.appendSwitch('log-level', '0');
 app.commandLine.appendSwitch('disable-logging');
@@ -140,6 +135,5 @@ app.commandLine.appendSwitch('disable-logging');
 app.commandLine.appendSwitch('silent-debugger-extension-api');
 
 app.whenReady().then(() => {
-  // Use our new function to create a window with toolbar
   createWindowWithToolbar(windowSize, INITIAL_URL);
 });

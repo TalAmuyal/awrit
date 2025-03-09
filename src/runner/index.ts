@@ -1,14 +1,13 @@
 import electronPath from 'electron';
 import { resolve, join } from 'node:path';
-import { $, type Subprocess } from 'bun';
+import { $, type ShellError, type Subprocess } from 'bun';
 import { getKittyColorsAsCSS } from './kittyColors';
 import { server } from './devServer';
+import { DPI_SCALE } from '../dpi';
 
 const root = resolve(__dirname, '../../');
 
-await $`mkdir -p dist && ln -s ${join(root, 'node_modules/awrit-native-rs/prebuilds')} ${join(root, 'dist/prebuilds')}`
-  .nothrow()
-  .quiet();
+await $`mkdir -p dist`.nothrow().quiet();
 
 {
   const { success } = await Bun.build({
@@ -35,9 +34,14 @@ try {
 
 if (!(await Bun.file(join(root, 'dist/toolbar/index.html')).exists())) {
   console.error('building toolbar');
-  await $`bun ${join(root, 'node_modules/vite/bin/vite.js')} build`
-    .cwd(join(root, 'src/runner'))
-    .quiet();
+  try {
+    await $`bun ${join(root, 'node_modules/vite/bin/vite.js')} build`
+      .cwd(join(root, 'src/runner'))
+      .quiet();
+  } catch (e) {
+    const e_ = e as unknown as ShellError;
+    console.error(e_.stderr.toString());
+  }
 }
 
 const children: [string, Subprocess][] = [];
@@ -51,7 +55,12 @@ children.push([
   'electron',
   Bun.spawn(
     // electronPath is not the electron module, it's the path to the electron executable, despite what TS thinks
-    [electronPath as unknown as string, join(root, 'dist/index.js'), ...process.argv.slice(2)],
+    [
+      electronPath as unknown as string,
+      join(root, 'dist/index.js'),
+      '--high-dpi-support=true',
+      ...process.argv.slice(2),
+    ],
     {
       stdio: ['inherit', 'inherit', 'inherit'],
       serialization: 'json',

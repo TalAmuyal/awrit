@@ -11,8 +11,6 @@ permissions:
   push:
     branches:
       - electron
-    tags-ignore:
-      - '**'
     paths:
       - 'awrit-native-rs/package.json'
       - 'awrit-native-rs/Cargo.*'
