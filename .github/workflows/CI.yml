@@ -20,7 +20,6 @@ permissions:
       - 'awrit-native-rs/src/Cargo.*'
       - 'awrit-native-rs/crates/**/Cargo.*'
       - '.github/workflows/CI.yml'
-  pull_request: null
 jobs:
   build:
     strategy:
