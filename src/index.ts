@@ -3,7 +3,6 @@ import {
   termEnableFeatures,
   listenForInput,
   type TermEvent,
-  type SupportedFeatures,
   termDisableFeatures,
   getWindowSize,
 } from 'awrit-native-rs';
@@ -13,6 +12,8 @@ import { createWindowWithToolbar } from './windows';
 import { console_ } from './console';
 import { options, showHelp } from './args';
 import { execSync } from 'node:child_process';
+import { features } from './features';
+import { clearPlacements } from './tty/kittyGraphics';
 
 if (options.help) {
   showHelp();
@@ -33,15 +34,15 @@ dialog.showErrorBox = (title, content) => {
 const INITIAL_URL = options.url || 'https://github.com/chase/awrit';
 
 let exiting = false;
-let quitListening = () => {};
-let features: SupportedFeatures | undefined;
+let quitListening = () => { };
 
 const cleanup = (signum = 1, reason?: string) => {
   exiting = true;
   quitListening();
+  clearPlacements();
   out.cleanup();
-  if (features) {
-    termDisableFeatures(features);
+  if (features.current) {
+    termDisableFeatures(features.current);
   }
   if (reason) {
     console_.log(reason);
@@ -68,24 +69,22 @@ function inputHandler(evt: TermEvent) {
 }
 
 function setup() {
-  process.on('SIGINT', cleanup);
-  process.on('SIGTERM', cleanup);
-  process.on('SIGABRT', cleanup);
+  const cleanup_ = () => cleanup();
+  process.on('SIGINT', cleanup_);
+  process.on('SIGTERM', cleanup_);
+  process.on('SIGABRT', cleanup_);
   process.on('SIGWINCH', () => {
     // TODO: Handle resize
   });
 
   out.setup();
-  features = termEnableFeatures();
-  if (!features.keyboard) {
+  features.current = termEnableFeatures();
+  const { keyboard, images } = features.current;
+  if (!keyboard) {
     cleanup(1, 'Extended keyboard support is required');
   }
-  if (!features.images) {
+  if (!images) {
     cleanup(1, 'Basic Kitty graphics protocol support is required');
-  }
-  // TODO: Add support for Ghostty by using image buffering
-  if (!features.loadFrame || !features.compositeFrame) {
-    cleanup(1, 'Kitty animation protocol support is required');
   }
 
   quitListening = listenForInput(inputHandler, 200);
@@ -95,6 +94,7 @@ function setup() {
 }
 
 setup();
+console_.error(getWindowSize());
 
 // Disable Electron's stdout logging
 app.commandLine.appendSwitch('log-level', '0');

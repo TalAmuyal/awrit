@@ -51,17 +51,24 @@ if (isDev) {
   await server.listen();
 }
 
+const args = [
+  electronPath as unknown as string,
+  join(root, 'dist/index.js'),
+  '--high-dpi-support=1',
+];
+
+// Kitty respects the virtual scale size, while other terminals respect the physical scale size, which confuses things
+const forcedDisplayScale = getDisplayScale();
+if (forcedDisplayScale) {
+  args.push(`--force-device-scale-factor=${forcedDisplayScale}`);
+}
+args.push(...process.argv.slice(2));
+
 children.push([
   'electron',
   Bun.spawn(
     // electronPath is not the electron module, it's the path to the electron executable, despite what TS thinks
-    [
-      electronPath as unknown as string,
-      join(root, 'dist/index.js'),
-      '--high-dpi-support=1',
-      `--force-device-scale-factor=${getDisplayScale()}`,
-      ...process.argv.slice(2),
-    ],
+    args,
     {
       stdio: ['inherit', 'inherit', 'inherit'],
       serialization: 'json',
