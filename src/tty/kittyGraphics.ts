@@ -3,6 +3,8 @@ import { GFX } from './escapeCodes';
 import type { Rect, Size } from './graphics';
 import { options } from '../args';
 import type { ShmGraphicBuffer } from 'awrit-native-rs';
+import { placeCursor } from './output';
+import { console_ } from '../console';
 
 let imageId_ = 1;
 
@@ -94,10 +96,45 @@ function compositeFrame(
 }
 
 export function clearPlacements() {
-  stdout.write(GFX`a=d`);
+  stdout.write(GFX`a=d,d=A`);
 }
 
 function freeImage(id: ImageId) {
   // a=d,d=I delete image
   stdout.write(GFX`a=d,d=I,i=${id}`);
+}
+
+// Ghostty and probably most other terminals only support a very small
+// subset of the graphics protocol, so this just supports an initial paint,
+// and then replacing under the same buffer before releasing
+export interface PaintedImage {
+  readonly id: ImageId;
+  readonly size: Size;
+  buffer: ShmGraphicBuffer;
+  free: () => void;
+  replace: (buffer: Buffer) => void;
+}
+
+export function paintImage(
+  buffer: ShmGraphicBuffer,
+  size: Size,
+  position: { x: { cell: number; px: number }; y: { cell: number; px: number } },
+): PaintedImage {
+  const id = imageId();
+  placeCursor({ x: position.x.cell, y: position.y.cell });
+  const control = `i=${id},X=${position.x.px},Y=${position.y.px}`;
+  paintBitmap(buffer.nameBase64, size, control);
+
+  return {
+    id,
+    size,
+    buffer,
+    free: () => freeImage(id),
+    replace: (buffer_) => {
+      buffer.write(buffer_, size.width);
+      // freeImage(id);
+      placeCursor({ x: position.x.cell, y: position.y.cell });
+      paintBitmap(buffer.nameBase64, size, control);
+    },
+  };
 }

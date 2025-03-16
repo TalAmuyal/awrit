@@ -3,12 +3,13 @@ import {
   type BrowserWindowConstructorOptions,
   type WebContents,
   ipcMain,
+  screen,
 } from 'electron';
 import path from 'node:path';
-import { registerPaintedContent } from './paint';
+import { registerPaintedContent, registerPaintedContentFallback } from './paint';
 import { sessionPromise } from './session';
 import { extensionsPromise, installedExtensionsPromise } from './extensions';
-import { type InitialFrame, paintInitialFrame } from './tty/kittyGraphics';
+import { paintInitialFrame } from './tty/kittyGraphics';
 import { ShmGraphicBuffer } from 'awrit-native-rs';
 import { options } from './args';
 import { console_ } from './console';
@@ -23,11 +24,11 @@ import {
   type LayoutNode,
 } from './layout';
 import { getDisplayScale } from './dpi';
+import { features } from './features';
 
 type WindowView = {
   toolbar: BrowserWindow;
   content: BrowserWindow;
-  containerFrame: InitialFrame;
   focusedContent: WebContents;
   layoutContainer: LayoutContainer;
   toolbarNode: LayoutNode;
@@ -72,11 +73,17 @@ export async function createWindowWithToolbar(
   initialUrl = 'https://github.com/chase/awrit',
 ): Promise<WindowView> {
   // Create layout container with device pixel dimensions
-  const layoutContainer = layout(size.width, size.height, getDisplayScale());
+  const layoutContainer = layout(
+    size.width,
+    size.height,
+    getDisplayScale() ?? screen.getPrimaryDisplay().scaleFactor,
+  );
 
   // Create layout nodes for toolbar and content
   const toolbarNode = row({ height: px(TOOLBAR_HEIGHT), tag: 'toolbar' });
   const contentNode = row({ height: auto(), tag: 'content' });
+
+  const hasAnimation = features.current?.loadFrame && features.current.compositeFrame;
 
   // Calculate layout
   calculateLayout(layoutContainer, [toolbarNode, contentNode]);
@@ -87,9 +94,6 @@ export async function createWindowWithToolbar(
     width: size.width + 3,
     height: size.height + 3,
   };
-  const containerBuffer = new ShmGraphicBuffer(scaledSize.width * scaledSize.height * 4);
-  containerBuffer.writeEmpty();
-  const containerFrame = paintInitialFrame(containerBuffer, scaledSize);
 
   const transparentWindowSettings = {
     transparent: true,
@@ -104,6 +108,8 @@ export async function createWindowWithToolbar(
     hiddenInMissionControl: true,
     acceptFirstMouse: true,
     skipTaskbar: true,
+    fullscreenable: false,
+    resizable: false,
   };
 
   const toolbar = new BrowserWindow({
@@ -139,8 +145,16 @@ export async function createWindowWithToolbar(
   });
 
   // Register for painting using layout-computed positions
-  registerPaintedContent(containerFrame, toolbar, toolbarNode);
-  registerPaintedContent(containerFrame, content, contentNode);
+  if (hasAnimation) {
+    const containerBuffer = new ShmGraphicBuffer(scaledSize.width * scaledSize.height * 4);
+    containerBuffer.writeEmpty();
+    const containerFrame = paintInitialFrame(containerBuffer, scaledSize);
+    registerPaintedContent(containerFrame, toolbar, toolbarNode);
+    registerPaintedContent(containerFrame, content, contentNode);
+  } else {
+    registerPaintedContentFallback(toolbar, toolbarNode);
+    registerPaintedContentFallback(content, contentNode);
+  }
 
   // Add to extensions
   extensionsPromise.then((extensions) => {
@@ -174,7 +188,6 @@ export async function createWindowWithToolbar(
   const view: WindowView = {
     toolbar,
     content,
-    containerFrame,
     focusedContent: content.webContents,
     layoutContainer,
     toolbarNode,

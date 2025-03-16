@@ -48,14 +48,14 @@ export function handleInput(evt: TermEvent) {
       const rawY = y ?? 0;
 
       // Determine which region we're in based on layout
-      const { toolbarNode } = view;
-      const isInToolbar = rawY <= toolbarNode.computedLayout.height;
+      const { toolbarNode, contentNode } = view;
+      const isInToolbar = rawY < contentNode.deviceLayout.y;
 
       // Calculate position relative to the target component
       const adjustedX = Math.floor(rawX / DPI_SCALE);
-      // TODO: why is this 4 pixels off?
-      const adjustedY =
-        Math.floor((rawY - (isInToolbar ? 0 : toolbarNode.computedLayout.height)) / DPI_SCALE) - 4;
+      const adjustedY = Math.floor(
+        (rawY - (isInToolbar ? 0 : toolbarNode.deviceLayout.height)) / DPI_SCALE,
+      );
 
       const focusedContent = isInToolbar ? view.toolbar.webContents : view.content.webContents;
 

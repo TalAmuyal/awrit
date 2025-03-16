@@ -137,10 +137,14 @@ impl ShmGraphicBuffer {
           width: rect.width,
           height: rect.height,
         };
-        bgra_to_rgba::bgra_to_rgba_rect(src_slice, dst_slice, image_width, bgra_rect);
+        if !bgra_to_rgba::bgra_to_rgba_rect(src_slice, dst_slice, image_width, bgra_rect) {
+          return Err(napi::Error::from_reason("Failed to convert BGRA to RGBA"));
+        }
       }
       None => {
-        bgra_to_rgba::bgra_to_rgba(src_slice, dst_slice);
+        if !bgra_to_rgba::bgra_to_rgba(src_slice, dst_slice) {
+          return Err(napi::Error::from_reason("Failed to convert BGRA to RGBA"));
+        }
       }
     }
 

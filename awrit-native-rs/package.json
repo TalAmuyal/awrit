@@ -1,25 +1,25 @@
 {
-  "name": "awrit-native-rs",
-  "version": "2.0.0",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "license": "BSD-3-Clause",
-  "napi": {
-    "name": "awrit-native-rs",
-    "triples": {
-      "defaults": false,
-      "additional": [
-        "aarch64-apple-darwin",
-        "x86_64-apple-darwin",
-        "x86_64-unknown-linux-gnu"
-      ]
-    }
-  },
-  "devDependencies": {
-    "@napi-rs/cli": "^2.18.4"
-  },
+	"name": "awrit-native-rs",
+	"version": "2.0.1",
+	"main": "index.js",
+	"types": "index.d.ts",
+	"license": "BSD-3-Clause",
+	"napi": {
+		"name": "awrit-native-rs",
+		"triples": {
+			"defaults": false,
+			"additional": [
+				"aarch64-apple-darwin",
+				"x86_64-apple-darwin",
+				"x86_64-unknown-linux-gnu"
+			]
+		}
+	},
+	"devDependencies": {
+		"@napi-rs/cli": "^2.18.4"
+	},
 	"scripts": {
-    "postinstall": "./run-shim scripts/download-binary.js",
+		"postinstall": "./run-shim scripts/download-binary.js",
 		"artifacts": "napi artifacts",
 		"make": "napi build --platform --release && ./run-shim scripts/fix-types.js",
 		"ci": "napi build --platform --release",

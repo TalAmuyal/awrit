@@ -16,8 +16,10 @@ pub struct Rect {
 }
 
 #[inline]
-pub fn bgra_to_rgba(src: &[u8], dst: &mut [u8]) {
-  assert_eq!(src.len(), dst.len());
+pub fn bgra_to_rgba(src: &[u8], dst: &mut [u8]) -> bool {
+  if src.len() != dst.len() {
+    return false;
+  }
 
   // For large buffers, use parallel processing
   if src.len() > CHUNK_SIZE {
@@ -28,29 +30,28 @@ pub fn bgra_to_rgba(src: &[u8], dst: &mut [u8]) {
       .for_each(|(src_chunk, dst_chunk)| unsafe {
         bgra_to_rgba_chunk(src_chunk, dst_chunk);
       });
-    return;
+    return true;
   }
 
   unsafe {
     bgra_to_rgba_chunk(src, dst);
   }
+
+  return true;
 }
 
 #[inline]
-pub fn bgra_to_rgba_rect(src: &[u8], dst: &mut [u8], image_width: u32, src_rect: Rect) {
+pub fn bgra_to_rgba_rect(src: &[u8], dst: &mut [u8], image_width: u32, src_rect: Rect) -> bool {
   // Validate input dimensions
-  debug_assert!(
-    src_rect.x + src_rect.width <= image_width,
-    "Source rectangle exceeds source width"
-  );
-  debug_assert!(
-    src.len() >= (image_width * (src_rect.y + src_rect.height)) as usize * BYTES_PER_PIXEL,
-    "Source buffer too small"
-  );
-  debug_assert!(
-    dst.len() >= (src_rect.width * src_rect.height) as usize * BYTES_PER_PIXEL,
-    "Destination buffer too small"
-  );
+  if src_rect.x + src_rect.width > image_width {
+    return false;
+  }
+  if src.len() < (image_width * (src_rect.y + src_rect.height)) as usize * BYTES_PER_PIXEL {
+    return false;
+  }
+  if dst.len() < (src_rect.width * src_rect.height) as usize * BYTES_PER_PIXEL {
+    return false;
+  }
 
   let src_start = (src_rect.y * image_width + src_rect.x) as usize * BYTES_PER_PIXEL;
 
@@ -87,13 +88,15 @@ pub fn bgra_to_rgba_rect(src: &[u8], dst: &mut [u8], image_width: u32, src_rect:
           }
         }
       });
-    return;
+    return true;
   }
 
   // Process the entire rect at once for small buffers
   unsafe {
     bgra_to_rgba_rect_chunk(src, dst, image_width, src_rect, src_start);
   }
+
+  return true;
 }
 
 #[cfg(target_arch = "x86_64")]
