@@ -73,9 +73,6 @@ function setup() {
   process.on('SIGINT', cleanup_);
   process.on('SIGTERM', cleanup_);
   process.on('SIGABRT', cleanup_);
-  process.on('SIGWINCH', () => {
-    // TODO: Handle resize
-  });
 
   out.setup();
   features.current = termEnableFeatures();
