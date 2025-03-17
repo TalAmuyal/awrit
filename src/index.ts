@@ -34,7 +34,7 @@ dialog.showErrorBox = (title, content) => {
 const INITIAL_URL = options.url || 'https://github.com/chase/awrit';
 
 let exiting = false;
-let quitListening = () => { };
+let quitListening = () => {};
 
 const cleanup = (signum = 1, reason?: string) => {
   exiting = true;
@@ -94,7 +94,6 @@ function setup() {
 }
 
 setup();
-console_.error(getWindowSize());
 
 // Disable Electron's stdout logging
 app.commandLine.appendSwitch('log-level', '0');

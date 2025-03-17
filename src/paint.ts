@@ -1,4 +1,4 @@
-import type { BrowserWindow } from 'electron';
+import type { BrowserWindow, NativeImage, Rectangle } from 'electron';
 import { getWindowSize, ShmGraphicBuffer } from 'awrit-native-rs';
 import {
   type InitialFrame,
@@ -20,6 +20,7 @@ type PaintedContent = {
     width: number;
     height: number;
   };
+  destroy(): void;
 };
 
 const weakPaintedContents_ = new WeakMap<BrowserWindow, PaintedContent>();
@@ -31,7 +32,6 @@ export function registerPaintedContent(
   layoutNode: LayoutNode,
 ): PaintedContent {
   const contents = w.webContents;
-  const result: PaintedContent = {};
   const frameNumber = 2 + containerFrame.paintedContent++;
 
   w.on('resize', () => {
@@ -45,7 +45,16 @@ export function registerPaintedContent(
     abort();
   }
 
-  contents.on('paint', async function paint(_: any, _dirty, image) {
+  const result: PaintedContent = {
+    destroy() {
+      contents.off('paint', paint);
+      this.buffer = undefined;
+      this.frame?.delete();
+      this.frame = undefined;
+    },
+  };
+
+  async function paint(_: any, _dirty: Rectangle, image: NativeImage) {
     const imageSize = image.getSize();
 
     const imageBufferSize = imageSize.width * imageSize.height * 4;
@@ -72,7 +81,9 @@ export function registerPaintedContent(
     containerFrame
       .loadFrame(frameNumber, result.buffer, imageSize)
       .composite(layoutNode.deviceLayout);
-  });
+  }
+
+  contents.on('paint', paint);
 
   weakPaintedContents_.set(w, result);
   return result;
@@ -90,14 +101,21 @@ export function registerPaintedContentFallback(
   layoutNode: LayoutNode,
 ): PaintedContent {
   const contents = w.webContents;
-  const result: PaintedContent = {};
   const termSize = getWindowSize();
   const cellToPxX = termSize.width / termSize.cols;
   const cellToPxY = termSize.height / termSize.rows;
   let paintedImage: PaintedImage | undefined;
 
-  // only have basic image support
-  contents.on('paint', async function paint(_: any, _dirty, image) {
+  const result: PaintedContent = {
+    destroy() {
+      contents.off('paint', paint);
+      this.buffer = undefined;
+      paintedImage?.free();
+      paintedImage = undefined;
+    },
+  };
+
+  async function paint(_: any, _dirty: Rectangle, image: NativeImage) {
     const imageSize = image.getSize();
     const imageBufferSize = imageSize.width * imageSize.height * 4;
 
@@ -127,7 +145,8 @@ export function registerPaintedContentFallback(
     if (replace && paintedImage) {
       paintedImage.replace(image.getBitmap());
     }
-  });
+  }
+  contents.on('paint', paint);
 
   weakPaintedContents_.set(w, result);
   return result;

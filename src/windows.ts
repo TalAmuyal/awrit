@@ -10,7 +10,7 @@ import { registerPaintedContent, registerPaintedContentFallback } from './paint'
 import { sessionPromise } from './session';
 import { extensionsPromise, installedExtensionsPromise } from './extensions';
 import { paintInitialFrame } from './tty/kittyGraphics';
-import { ShmGraphicBuffer } from 'awrit-native-rs';
+import { getWindowSize, ShmGraphicBuffer } from 'awrit-native-rs';
 import { options } from './args';
 import { console_ } from './console';
 import { TOOLBAR_PORT } from './runner/ports';
@@ -25,8 +25,8 @@ import {
 } from './layout';
 import { getDisplayScale } from './dpi';
 import { features } from './features';
-import { OSC } from './tty/escapeCodes';
 import { updateCursor } from './tty/cursor';
+import { debounce } from './debounce';
 
 type WindowView = {
   toolbar: BrowserWindow;
@@ -62,8 +62,16 @@ function resetForFrameQuirk(webContents: WebContents) {
   });
 }
 
-export const managedViews: WindowView[] = [];
+type Size = { width: number; height: number };
+// this deals with the DPI scale rounding error causing the buffer to be too small
+function padSize(size: Size): Size {
+  return {
+    width: size.width + 3,
+    height: size.height + 3,
+  };
+}
 
+export const managedViews: WindowView[] = [];
 /**
  * Creates a new window with a toolbar and main content area
  * @param size Window size
@@ -74,6 +82,7 @@ export async function createWindowWithToolbar(
   size: { width: number; height: number },
   initialUrl = 'https://github.com/chase/awrit',
 ): Promise<WindowView> {
+  console_.error('size', size);
   // Create layout container with device pixel dimensions
   const layoutContainer = layout(
     size.width,
@@ -89,13 +98,6 @@ export async function createWindowWithToolbar(
 
   // Calculate layout
   calculateLayout(layoutContainer, [toolbarNode, contentNode]);
-  // process.emit('SIGINT');
-
-  // this deals with the DPI scale rounding error causing the buffer to be too small
-  const scaledSize = {
-    width: size.width + 3,
-    height: size.height + 3,
-  };
 
   const transparentWindowSettings = {
     transparent: true,
@@ -146,17 +148,27 @@ export async function createWindowWithToolbar(
     },
   });
 
-  // Register for painting using layout-computed positions
-  if (hasAnimation) {
-    const containerBuffer = new ShmGraphicBuffer(scaledSize.width * scaledSize.height * 4);
-    containerBuffer.writeEmpty();
-    const containerFrame = paintInitialFrame(containerBuffer, scaledSize);
-    registerPaintedContent(containerFrame, toolbar, toolbarNode);
-    registerPaintedContent(containerFrame, content, contentNode);
-  } else {
-    registerPaintedContentFallback(toolbar, toolbarNode);
-    registerPaintedContentFallback(content, contentNode);
+  const destructors: Array<() => void> = [];
+
+  function registerPaints(size: Size) {
+    if (hasAnimation) {
+      const containerBuffer = new ShmGraphicBuffer(size.width * size.height * 4);
+      containerBuffer.writeEmpty();
+      const containerFrame = paintInitialFrame(containerBuffer, size);
+      destructors.push(
+        containerFrame.free,
+        registerPaintedContent(containerFrame, toolbar, toolbarNode).destroy,
+        registerPaintedContent(containerFrame, content, contentNode).destroy,
+      );
+    } else {
+      destructors.push(
+        registerPaintedContentFallback(toolbar, toolbarNode).destroy,
+        registerPaintedContentFallback(content, contentNode).destroy,
+      );
+    }
   }
+
+  registerPaints(padSize(size));
 
   // Add to extensions
   extensionsPromise.then((extensions) => {
@@ -168,7 +180,7 @@ export async function createWindowWithToolbar(
     toolbar.webContents.once('did-finish-load', () => {
       console_.error('toolbar loaded');
     });
-    toolbar.webContents.once('did-fail-load', (event, errorCode, errorDescription) => {
+    toolbar.webContents.once('did-fail-load', (_event, errorCode, errorDescription) => {
       console_.error('toolbar failed to load', {
         errorCode,
         errorDescription,
@@ -206,16 +218,33 @@ export async function createWindowWithToolbar(
   // Set up IPC for toolbar interactions
   setupToolbarIPC(toolbar.webContents, content.webContents);
 
+  process.on(
+    'SIGWINCH',
+    debounce(100, () => {
+      for (const destructor of destructors) {
+        destructor();
+      }
+      destructors.length = 0;
+
+      const size = getWindowSize();
+      console_.error('resize', size);
+      updateViewSizes(view, size);
+      registerPaints(padSize(size));
+    }),
+  );
+
   return view;
 }
 
-function updateViewSizes(view: WindowView, width: number, height: number) {
-  const { toolbar, content, layoutContainer, toolbarNode, contentNode } = view;
+function updateViewSizes(view: WindowView, { width, height }: Size) {
+  const { toolbar, content, toolbarNode, contentNode } = view;
+  view.layoutContainer = layout(
+    width,
+    height,
+    getDisplayScale() ?? screen.getPrimaryDisplay().scaleFactor,
+  );
 
-  // Recalculate layout with new dimensions in device pixels
-  layoutContainer.logicalWidth = width / layoutContainer.devicePixelRatio;
-  layoutContainer.logicalHeight = height / layoutContainer.devicePixelRatio;
-  calculateLayout(layoutContainer, [toolbarNode, contentNode]);
+  calculateLayout(view.layoutContainer, [toolbarNode, contentNode]);
 
   // Update window sizes based on layout
   toolbar.setContentSize(toolbarNode.computedLayout.width, toolbarNode.computedLayout.height);
