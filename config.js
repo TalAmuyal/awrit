@@ -2,6 +2,16 @@
  * @typedef {import('./src/keybindings').KeyBindingAction} KeyBindingAction
  */
 
+/** @type {KeyBindingAction} */
+function back({ view }) {
+  view.back();
+}
+
+/** @type {KeyBindingAction} */
+function forward({ view }) {
+  view.forward();
+}
+
 /**
  * Keybindings configuration object that maps Neovim-style key sequences to actions.
  *
@@ -37,35 +47,38 @@
  * }
  * ```
  *
- * @type {Record<string, KeyBindingAction> & { mac?: Record<string, KeyBindingAction>, linux?: Record<string, KeyBindingAction> }}
+ * @type {Record<string, KeyBindingAction> & {
+ *   mac?: Record<string, KeyBindingAction>,
+ *   linux?: Record<string, KeyBindingAction>
+ * }}
  */
 const keybindings = {
   '<C-c>': () => {
     process.emit('SIGINT');
   },
-  '<Mouse4>': ({ view }) => {
-    view.focusedContent?.navigationHistory.goBack();
-  },
-  '<Mouse5>': ({ view }) => {
-    view.focusedContent?.navigationHistory.goForward();
-  },
+  '<Mouse4>': back,
+  '<Mouse5>': forward,
   mac: {
     '<M-a>': ({ view }) => {
       view.focusedContent.selectAll();
     },
-    '<M-]>': ({ view }) => {
-      view.focusedContent?.navigationHistory.goForward();
-    },
-    '<M-[>': ({ view }) => {
-      view.focusedContent?.navigationHistory.goBack();
+    '<M-]>': forward,
+    '<M-[>': back,
+    '<M-f>': ({ view }) => {
+      view.toolbar.webContents.send('toolbar:toggle-find');
+      view.content.blurWebView();
+      view.toolbar.focusOnWebView();
+      view.focusedContent = view.toolbar.webContents;
     },
   },
   linux: {
-    '<C-]>': ({ view }) => {
-      view.focusedContent?.navigationHistory.goForward();
-    },
-    '<C-[>': ({ view }) => {
-      view.focusedContent?.navigationHistory.goBack();
+    '<C-]>': forward,
+    '<C-[>': back,
+    '<C-f>': ({ view }) => {
+      view.toolbar.webContents.send('toolbar:toggle-find');
+      view.content.blurWebView();
+      view.toolbar.focusOnWebView();
+      view.focusedContent = view.toolbar.webContents;
     },
   },
 };
