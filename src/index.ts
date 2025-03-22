@@ -19,6 +19,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 function loadConfig(config: typeof import('../config.js')) {
+  if (config.keybindings) {
+    if (process.platform === 'darwin') {
+      Object.assign(config.keybindings, config.keybindings.mac);
+      config.keybindings.linux = undefined;
+    } else {
+      Object.assign(config.keybindings, config.keybindings.linux);
+      config.keybindings.mac = undefined;
+    }
+  }
   loadKeyBindings(config);
 }
 

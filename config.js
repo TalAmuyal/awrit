@@ -37,37 +37,36 @@
  * }
  * ```
  *
- * @type {Record<string, KeyBindingAction>}
+ * @type {Record<string, KeyBindingAction> & { mac?: Record<string, KeyBindingAction>, linux?: Record<string, KeyBindingAction> }}
  */
 const keybindings = {
-  '<M-a>': ({ view, isMac }) => {
-    if (!isMac) return;
-    view.focusedContent.selectAll();
-  },
   '<C-c>': () => {
     process.emit('SIGINT');
-  },
-  '<C-]>': ({ isMac, view }) => {
-    if (isMac) return;
-    view.focusedContent?.navigationHistory.goForward();
-  },
-  '<C-[>': ({ isMac, view }) => {
-    if (isMac) return;
-    view.focusedContent?.navigationHistory.goBack();
-  },
-  '<M-]>': ({ isMac, view }) => {
-    if (!isMac) return;
-    view.focusedContent?.navigationHistory.goForward();
-  },
-  '<M-[>': ({ isMac, view }) => {
-    if (!isMac) return;
-    view.focusedContent?.navigationHistory.goBack();
   },
   '<Mouse4>': ({ view }) => {
     view.focusedContent?.navigationHistory.goBack();
   },
   '<Mouse5>': ({ view }) => {
     view.focusedContent?.navigationHistory.goForward();
+  },
+  mac: {
+    '<M-a>': ({ view }) => {
+      view.focusedContent.selectAll();
+    },
+    '<M-]>': ({ view }) => {
+      view.focusedContent?.navigationHistory.goForward();
+    },
+    '<M-[>': ({ view }) => {
+      view.focusedContent?.navigationHistory.goBack();
+    },
+  },
+  linux: {
+    '<C-]>': ({ view }) => {
+      view.focusedContent?.navigationHistory.goForward();
+    },
+    '<C-[>': ({ view }) => {
+      view.focusedContent?.navigationHistory.goBack();
+    },
   },
 };
 
