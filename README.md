@@ -23,6 +23,16 @@ cd awrit
 ./awrit
 ```
 
+### (Optional) Install
+
+The following installs a link to `awrit` in `~/.local/bin`:
+
+``` bash
+PREFIX=~/.local/bin
+DIR="$PWD"
+(cd "$PREFIX" && ln -s "$DIR/awrit")
+```
+
 ## Usage
 
 ```bash
@@ -65,3 +75,11 @@ UklULCI+QVdSSVQsPC9zcGFuPgo8c3BhbiBkYXRhLXRleHQ9IlRIQVQnUyI+VEhBVCdTPC9zcGFuPgo
 8c3BhbiBkYXRhLXRleHQ9IlBSRVRUWSI+UFJFVFRZPC9zcGFuPgo8c3BhbiBkYXRhLXRleHQ9IkNPT0
 wiPkNPT0w8L3NwYW4+CjwvcD48L2JvZHk+PC9odG1sPg=='
 ```
+
+## Configuration
+
+`awrit` can be configured through `config.js` in the project root. Changes to it will update the config in any running `awrit`.
+
+Currently it only supports custom keybindings.
+
+For more details on keybinding syntax and available actions, see the comments in `config.js`.

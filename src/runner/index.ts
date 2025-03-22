@@ -17,7 +17,7 @@ await $`mkdir -p dist`.nothrow().quiet();
     target: 'node',
     format: 'cjs',
     sourcemap: 'inline',
-    external: ['electron'],
+    external: ['electron', '../config.js'],
   });
 
   if (!success) {

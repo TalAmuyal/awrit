@@ -28,7 +28,7 @@ import { features } from './features';
 import { updateCursor } from './tty/cursor';
 import { debounce } from './debounce';
 
-type WindowView = {
+export type WindowView = {
   toolbar: BrowserWindow;
   content: BrowserWindow;
   focusedContent: WebContents;

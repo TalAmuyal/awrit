@@ -1,5 +1,6 @@
 import type { TermEvent } from 'awrit-native-rs';
 import { focusedView } from './windows';
+import { handleEvent as handleKeyBinding } from './keybindings';
 
 const WHEEL_DELTA = 100;
 
@@ -12,11 +13,17 @@ function isSimpleMouseEvent(kind: unknown): kind is (typeof mouseEventTypes)[num
 export function handleInput(evt: TermEvent) {
   const view = focusedView.current;
   if (!view) {
+    handleKeyBinding(evt);
     return;
   }
 
   switch (evt.eventType) {
     case 'key': {
+      // First check if this is a keybinding
+      if (handleKeyBinding(evt, view)) {
+        return;
+      }
+
       const webContents = view.focusedContent;
       const { code: keyCode, modifiers, down, isCharEvent } = evt.keyEvent;
 
@@ -42,8 +49,17 @@ export function handleInput(evt: TermEvent) {
     }
 
     case 'mouse': {
-      const DPI_SCALE = view.layoutContainer.devicePixelRatio;
       const { kind, button, x, y, modifiers } = evt.mouseEvent;
+      if (
+        (kind === 'mouseUp' || kind === 'mouseDown') &&
+        button &&
+        ['fourth', 'fifth'].includes(button ?? '')
+      ) {
+        handleKeyBinding(evt, view);
+        return;
+      }
+
+      const DPI_SCALE = view.layoutContainer.devicePixelRatio;
       const rawX = x ?? 0;
       const rawY = y ?? 0;
 

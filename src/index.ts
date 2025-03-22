@@ -14,6 +14,13 @@ import { options, showHelp } from './args';
 import { execSync } from 'node:child_process';
 import { features } from './features';
 import { clearPlacements } from './tty/kittyGraphics';
+import { loadKeyBindings } from './keybindings';
+import fs from 'node:fs';
+import path from 'node:path';
+
+function loadConfig(config: typeof import('../config.js')) {
+  loadKeyBindings(config);
+}
 
 if (options.help) {
   showHelp();
@@ -25,6 +32,29 @@ if (options.version) {
   console_.log('awrit', version);
   process.exit(0);
 }
+
+const CONFIG_PATH = '../config.js';
+const CONFIG_PATH_RESOLVED = path.resolve(__dirname, CONFIG_PATH);
+loadConfig(require(CONFIG_PATH_RESOLVED));
+
+fs.watchFile(CONFIG_PATH_RESOLVED, { interval: 200 }, (curr, prev) => {
+  if (curr.mtime <= prev.mtime) return;
+  const oldConfig = require(CONFIG_PATH_RESOLVED);
+  require.cache[CONFIG_PATH_RESOLVED] = undefined;
+
+  try {
+    const newConfig = require(CONFIG_PATH_RESOLVED);
+    loadConfig(newConfig);
+  } catch (e) {
+    console_.error('Error loading config:', e);
+    // Restore old config if new one fails
+    try {
+      loadConfig(oldConfig);
+    } catch (e) {
+      console_.error('Error restoring old config:', e);
+    }
+  }
+});
 
 // Don't show a dialog box on uncaught errors
 dialog.showErrorBox = (title, content) => {
@@ -53,10 +83,9 @@ const cleanup = (signum = 1, reason?: string) => {
 function inputHandler(evt: TermEvent) {
   if (
     evt.eventType === 'key' &&
-    evt.keyEvent.code === 'c' &&
+    evt.keyEvent.code === 'd' &&
     evt.keyEvent.modifiers.includes('ctrl')
   ) {
-    quitListening();
     cleanup(0);
   }
 
@@ -70,7 +99,7 @@ function inputHandler(evt: TermEvent) {
 
 function setup() {
   const cleanup_ = () => cleanup();
-  process.on('SIGINT', cleanup_);
+  process.on('SIGINT', () => cleanup(0));
   process.on('SIGTERM', cleanup_);
   process.on('SIGABRT', cleanup_);
 
