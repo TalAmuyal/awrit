@@ -117,7 +117,7 @@ echo
 
 # Patch Electron.app to not display in the Dock, because it seems odd
 if [ "$(uname -s)" = "Darwin" ]; then
-  sed -i '' 's/<\/dict>/    <key>LSUIElement<\/key>\n    <true\/>\n<\/dict>/' "$BASE_DIR/node_modules/electron/dist/Electron.app/Contents/Info.plist" || true
+  sed -i '' 's/<\/dict>/    <key>LSUIElement<\/key>\n    <true\/>\n<\/dict>/' "$DOWNLOAD_TO/node_modules/electron/dist/Electron.app/Contents/Info.plist" || true
 fi
 
 # Install link to $INSTALL_TO/bin/awrit
