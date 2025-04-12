@@ -1,8 +1,6 @@
-import { console_ } from './console';
-
 export const rawArgs = process.argv.slice(2);
 
-const possibleOptions = {
+export const possibleOptions = {
   url: { short: 'u', description: 'Set the initial URL', string: true, arg: true },
 
   help: { short: 'h', description: 'Show help' },
@@ -22,18 +20,6 @@ const shortOptions = Object.fromEntries(
 ) as {
   [K in ShortOption]: Option;
 };
-
-export function showHelp() {
-  console_.log('Usage: awrit [options] [url]');
-  console_.log('Options:');
-  for (const [key, value] of Object.entries(possibleOptions)) {
-    if ('arg' in value) {
-      console_.log(`  [${key}]: ${value.description}`);
-    } else {
-      console_.log(`  -${value.short}, --${key}: ${value.description}`);
-    }
-  }
-}
 
 export const options: {
   [K in Option]?: (typeof possibleOptions)[K] extends { string: true } ? string : boolean;

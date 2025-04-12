@@ -1,13 +1,50 @@
+import { possibleOptions, options } from '../args';
+import { $, type ShellError, type Subprocess } from 'bun';
 import electronPath from 'electron';
 import { resolve, join } from 'node:path';
-import { $, type ShellError, type Subprocess } from 'bun';
 import { colorsToTailwind, queryColors } from './kittyColors';
 import { server } from './devServer';
 import { getDisplayScale } from '../dpi';
 
-const root = resolve(__dirname, '../../');
+const { stdout } = process;
 
-await $`mkdir -p dist`.nothrow().quiet();
+const RESET = '\x1b[0m';
+const DIM_WHITE = '\x1b[0;2m';
+const BOLD_GREEN = '\x1b[1;32m';
+const BOLD_WHITE = '\x1b[1m';
+
+export function showHelp() {
+  stdout.write(RESET);
+  stdout.write(`Usage: ${BOLD_GREEN}awrit${RESET} ${DIM_WHITE}[options] [url]${RESET}\n\n`);
+  stdout.write('Options:\n');
+  for (const [key, value] of Object.entries(possibleOptions)) {
+    if ('arg' in value) {
+      stdout.write(`  ${DIM_WHITE}[${key}]${RESET}: ${value.description}\n`);
+    } else {
+      stdout.write(
+        `  ${BOLD_WHITE}-${value.short}${RESET}, ${BOLD_WHITE}--${key}${RESET}: ${value.description}\n`,
+      );
+    }
+  }
+}
+
+if (options.help) {
+  showHelp();
+  process.exit(0);
+}
+
+if (options.version) {
+  const version = (await $`git rev-parse --short HEAD`.quiet()).text().trim();
+  if (stdout.isTTY) {
+    stdout.write(`${BOLD_GREEN}awrit${RESET} ${version}\n`);
+  } else {
+    stdout.write(version);
+  }
+  process.exit(0);
+}
+
+const root = resolve(__dirname, '../../');
+await $`mkdir -p ${root}/dist`.nothrow().quiet();
 
 {
   const { success } = await Bun.build({
@@ -29,14 +66,12 @@ await $`mkdir -p dist`.nothrow().quiet();
 const version = require(join(root, 'package.json')).version;
 const distVersion = Bun.file(join(root, 'dist/version'));
 
-if (
-  !(await distVersion.exists()) ||
-  (await distVersion.text()) !== version ||
-  process.argv.includes('--rebuild')
-) {
+if (!(await distVersion.exists()) || (await distVersion.text()) !== version || options.rebuild) {
   console.error('building toolbar');
   try {
+    process.stdin.setRawMode(true);
     const colors = await queryColors();
+    process.stdin.setRawMode(false);
     if (!colors) {
       console.error('Failed to query terminal colors');
     } else {
@@ -60,13 +95,14 @@ if (
 }
 
 const children: [string, Subprocess][] = [];
-const isDev = process.argv.includes('--dev') || process.argv.includes('-d');
+const isDev = options.dev;
 
 if (isDev) {
   await server.listen();
 }
 
 const args = [
+  // electronPath is not the electron module, it's the path to the electron executable, despite what TS thinks
   electronPath as unknown as string,
   join(root, 'dist/index.js'),
   '--high-dpi-support=1',

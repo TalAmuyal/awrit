@@ -10,8 +10,7 @@ import * as out from './tty/output';
 import { handleInput } from './inputHandler';
 import { createWindowWithToolbar } from './windows';
 import { console_ } from './console';
-import { options, showHelp } from './args';
-import { execSync } from 'node:child_process';
+import { options } from './args';
 import { features } from './features';
 import { clearPlacements } from './tty/kittyGraphics';
 import { loadKeyBindings } from './keybindings';
@@ -32,17 +31,6 @@ function loadConfig(config: typeof import('../config.js')) {
     }
     loadKeyBindings(config);
   }
-}
-
-if (options.help) {
-  showHelp();
-  process.exit(0);
-}
-
-if (options.version) {
-  const version = execSync('git rev-parse --short HEAD').toString().trim();
-  console_.log('awrit', version);
-  process.exit(0);
 }
 
 const CONFIG_PATH = '../config.js';
