@@ -19,6 +19,9 @@ function getPlatformTarget() {
 			throw new Error(`Unsupported architecture on macOS: ${arch}`);
 
 		case "linux":
+			if (arch === "arm64") {
+				return "linux-arm64-gnu";
+			}
 			if (arch === "x64") {
 				return "linux-x64-gnu";
 			}
