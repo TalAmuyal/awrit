@@ -9,10 +9,7 @@ export type Content = {
   loadingStarted: () => void;
   loadingStopped: () => void;
   urlChanged: (url: string) => void;
-  navigationStateChanged: (state: {
-    canGoBack: boolean;
-    canGoForward: boolean;
-  }) => void;
+  navigationStateChanged: (state: { canGoBack: boolean; canGoForward: boolean }) => void;
 };
 
 export const Toolbar: Array<keyof Toolbar> = [

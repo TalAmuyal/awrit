@@ -1,6 +1,6 @@
 {
   "files": {
-    "ignore": ["tsconfig.json", "tsconfig.*.json"]
+    "includes": ["src/**/*.ts", "src/**/*.tsx"]
   },
   "vcs": {
     "useIgnoreFile": true
@@ -8,7 +8,6 @@
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
-    "ignore": [],
     "attributePosition": "auto",
     "indentStyle": "space",
     "indentWidth": 2,
@@ -37,9 +36,7 @@
       "style": {
         "useTemplate": "off"
       },
-      "a11y": {
-        "all": false
-      },
+      "a11y": "off",
       "suspicious": {
         "noExplicitAny": "off"
       }

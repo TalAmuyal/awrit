@@ -1,9 +1,10 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
+  "root": false,
+  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
   "files": {
-    "ignore": ["index.js"]
+    "includes": ["src/**/*.ts", "src/**/*.tsx"]
   },
   "linter": {
     "enabled": true
   }
-} 
+}

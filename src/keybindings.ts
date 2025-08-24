@@ -3,10 +3,7 @@ import type { WindowView } from './windows';
 
 const isMac = process.platform === 'darwin';
 
-export type KeyBindingAction = (event: {
-  isMac: boolean;
-  view?: WindowView;
-}) => void;
+export type KeyBindingAction = (event: { isMac: boolean; view?: WindowView }) => void;
 
 type KeyBinding = {
   keys: string[];

@@ -13,11 +13,9 @@ export const extensionsPromise = sessionPromise.then((session) => {
     session,
     license: 'GPL-3.0',
     modulePath: path.join(__dirname, '../node_modules/electron-chrome-extensions'),
-  })
+  });
 });
 
-export const installedExtensionsPromise = sessionPromise.then(
-  (session) => Promise.allSettled(
-    CHROME_WEB_STORE_EXTENSIONS.map((id) => installExtension(id, { session })),
-  )
+export const installedExtensionsPromise = sessionPromise.then((session) =>
+  Promise.allSettled(CHROME_WEB_STORE_EXTENSIONS.map((id) => installExtension(id, { session }))),
 );
