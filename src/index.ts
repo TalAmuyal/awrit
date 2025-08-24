@@ -127,6 +127,9 @@ app.commandLine.appendSwitch('disable-logging');
 // Disable Chrome DevTools logging
 app.commandLine.appendSwitch('silent-debugger-extension-api');
 
+// Prevent sysctlbyname crash: https://github.com/electron/electron/issues/45653#issuecomment-2663510200
+app.commandLine.appendSwitch('disable-features', 'UseBrowserCalculatedOrigin');
+
 app.whenReady().then(async () => {
   const window = await createWindowWithToolbar(getWindowSize(), INITIAL_URL);
 
