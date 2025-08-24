@@ -68,23 +68,31 @@ const distVersion = Bun.file(join(root, 'dist/version'));
 
 if (!(await distVersion.exists()) || (await distVersion.text()) !== version || options.rebuild) {
   console.error('building toolbar');
-  try {
-    process.stdin.setRawMode(true);
-    const colors = await queryColors();
-    process.stdin.setRawMode(false);
-    if (!colors) {
+  let didQueryColors = false;
+  for (let tries = 0; !didQueryColors && tries < 3; tries++) {
+    try {
+      process.stdin.setRawMode(true);
+      const colors = await queryColors();
+      process.stdin.setRawMode(false);
+      if (!colors) {
+        console.error('Failed to query terminal colors');
+      } else {
+        await Bun.write(join(root, 'dist/kitty.css'), colorsToTailwind(colors));
+        didQueryColors = true;
+      }
+    } catch {
       console.error('Failed to query terminal colors');
-    } else {
-      await Bun.write(join(root, 'dist/kitty.css'), colorsToTailwind(colors));
     }
-  } catch {
-    console.error('Failed to query terminal colors');
+  }
+  // TODO: figure out why this isn't reliable for some users
+  if (!didQueryColors) {
+    // empty placeholder required for building in case of failure
+    await Bun.write(join(root, 'dist/kitty.css'), "");
   }
 
   try {
     await $`bun ${join(root, 'node_modules/vite/bin/vite.js')} build`
-      .cwd(join(root, 'src/runner'))
-      .quiet();
+      .cwd(join(root, 'src/runner'));
   } catch (e) {
     const e_ = e as any;
     console.error(e_.stderr.toString());
