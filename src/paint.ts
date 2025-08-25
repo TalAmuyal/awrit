@@ -1,16 +1,16 @@
-import type { BrowserWindow, NativeImage, Rectangle } from 'electron';
 import { getWindowSize, ShmGraphicBuffer } from 'awrit-native-rs';
+import type { BrowserWindow, NativeImage, Rectangle } from 'electron';
+import { abort } from './abort';
+import { options } from './args';
+import { console_ } from './console';
+import { features } from './features';
+import type { LayoutNode } from './layout';
 import {
-  type InitialFrame,
   type AnimationFrame,
+  type InitialFrame,
   type PaintedImage,
   paintImage,
 } from './tty/kittyGraphics';
-import { console_ } from './console';
-import { options } from './args';
-import type { LayoutNode } from './layout';
-import { features } from './features';
-import { abort } from './abort';
 
 type PaintedContent = {
   frame?: AnimationFrame;

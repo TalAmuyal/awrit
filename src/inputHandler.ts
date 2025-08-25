@@ -1,6 +1,6 @@
-import type { TermEvent, KeyEvent as KeyEventOriginal } from 'awrit-native-rs';
-import { focusedView } from './windows';
+import type { KeyEvent as KeyEventOriginal, TermEvent } from 'awrit-native-rs';
 import { handleEvent as handleKeyBinding } from './keybindings';
+import { focusedView } from './windows';
 
 const WHEEL_DELTA = 100;
 
