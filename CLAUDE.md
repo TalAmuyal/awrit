@@ -2,9 +2,9 @@
 
 Chromium rendered into a Kitty-graphics-protocol terminal. See `README.md` for user-facing docs and `CONTRIBUTING.md` for the full contributor workflow (including the `mise` task table). This file captures things those docs don't.
 
-## Main branch is `electron`
+## Main branch is `master`
 
-PRs target `electron`, not `main`. The repo has no `main`.
+PRs target `master`. The branch was previously named `electron`; if you have an old checkout, run `git fetch origin && git remote set-head origin -a`.
 
 ## Entry point
 
@@ -79,4 +79,4 @@ Match patterns in `manifest.json` are scoped to `.md` and `.markdown` paths (`fi
 
 ## Git workflow
 
-Typical flow: start from `git checkout --detach origin/electron`, work, leave changes unstaged, and use the PR-submission skill to commit, push, and open the PR. Do NOT run `git add` / `git commit` / `git push` without explicit ask.
+Typical flow: start from `git checkout --detach origin/master`, work, leave changes unstaged, and use the PR-submission skill to commit, push, and open the PR. Do NOT run `git add` / `git commit` / `git push` without explicit ask.
