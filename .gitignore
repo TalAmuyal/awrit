@@ -5,3 +5,5 @@ out
 *.log*
 .bun
 awrit_error.txt
+# Personal user config; the template lives at config.example.js
+config.js

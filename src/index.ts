@@ -14,14 +14,24 @@ import { console_ } from './console';
 import { options } from './args';
 import { features } from './features';
 import { clearPlacements } from './tty/kittyGraphics';
-import { loadKeyBindings } from './keybindings';
+import { loadKeyBindings, type KeyBindingAction } from './keybindings';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+
+interface UserConfig {
+  homepage?: string;
+  userExtensions?: string[];
+  keybindings?: Record<string, KeyBindingAction> & {
+    mac?: Record<string, KeyBindingAction>;
+    linux?: Record<string, KeyBindingAction>;
+  };
+}
 
 let homepage = 'https://github.com/TalAmuyal/awrit';
 let userExtensions: string[] = [];
 
-function loadConfig(config: typeof import('../config.js')) {
+function loadConfig(config: UserConfig) {
   if (config.homepage) homepage = config.homepage;
   if (config.userExtensions) userExtensions = config.userExtensions;
   if (config.keybindings) {
@@ -32,12 +42,19 @@ function loadConfig(config: typeof import('../config.js')) {
       Object.assign(config.keybindings, config.keybindings.linux);
       config.keybindings.mac = undefined;
     }
-    loadKeyBindings(config);
+    loadKeyBindings({ keybindings: config.keybindings });
   }
 }
 
-const CONFIG_PATH = '../config.js';
-const CONFIG_PATH_RESOLVED = path.resolve(__dirname, CONFIG_PATH);
+const xdgConfigHome = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
+const CONFIG_PATH_RESOLVED = path.join(xdgConfigHome, 'awrit', 'config.js');
+
+if (!fs.existsSync(CONFIG_PATH_RESOLVED)) {
+  const templatePath = path.resolve(__dirname, '../config.example.js');
+  fs.mkdirSync(path.dirname(CONFIG_PATH_RESOLVED), { recursive: true });
+  fs.copyFileSync(templatePath, CONFIG_PATH_RESOLVED);
+}
+
 loadConfig(require(CONFIG_PATH_RESOLVED));
 
 fs.watchFile(CONFIG_PATH_RESOLVED, { interval: 200 }, (curr, prev) => {
