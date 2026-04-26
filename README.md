@@ -21,7 +21,7 @@ Yep, actual Chromium being rendered in your favorite terminal that supports the 
 curl -fsS https://talamuyal.github.io/awrit/get | bash
 ```
 
-By default, this will download to `~/.local/share/awrit` (honors `$XDG_DATA_HOME`) and link to `~/.local/bin/awrit`.
+By default, this will download to `~/.local/share/awrit` (honors `$XDG_DATA_HOME`) and, without touching your shell config, link `awrit` into the first writable directory on your `$PATH` from this list: `~/.local/bin`, `~/bin`, `/usr/local/bin`, `/opt/homebrew/bin`. If none of those are on your `$PATH`, it installs to `~/.local/bin` and prints instructions for adding it to your shell config.
 
 You can configure `awrit` by editing `~/.config/awrit/config.js` (or `$XDG_CONFIG_HOME/awrit/config.js` if set). See [Configuration](#configuration) for more information.
 
@@ -34,6 +34,8 @@ curl -fsS https://talamuyal.github.io/awrit/get | DOWNLOAD_TO=~/somewhere-comple
 ``` bash
 curl -fsS https://talamuyal.github.io/awrit/get | INSTALL_TO=~/.not-local bash
 ```
+
+Setting `INSTALL_TO` skips `$PATH` auto-discovery; the install will use `$INSTALL_TO/bin` directly without modifying your shell config, so make sure that directory is on your `$PATH`.
 
 ## Usage
 
