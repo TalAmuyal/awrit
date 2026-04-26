@@ -8,9 +8,9 @@ INSTALL_TO=${INSTALL_TO-"$HOME/.local"}
 CONFIG_DIR=${XDG_CONFIG_HOME:-$HOME/.config}/awrit
 
 REPO='https://github.com/TalAmuyal/awrit'
-BRANCH='electron'
-ZIP="${BRANCH}.zip"
-ZIP_URI="$REPO/archive/refs/heads/$ZIP"
+BRANCH='master'
+ARCHIVE="${BRANCH}.tar.gz"
+ARCHIVE_URI="$REPO/archive/refs/heads/$ARCHIVE"
 
 # Reset
 Color_Off=''
@@ -92,18 +92,18 @@ if which git >/dev/null; then
   fi
 else
   info_bold ""
-  command -v unzip >/dev/null || error 'unzip is required to install awrit'
-  mkdir -p "$bin_dir" || error "Failed to create awrit directory \"$DOWNLOAD_TO\""
+  command -v tar >/dev/null || error 'tar is required to install awrit'
 
-  zip_file="$DOWNLOAD_TO/$ZIP"
-  curl --fail --location --progress-bar --output $zip_file "$ZIP_URI" ||
-    error "Failed to download awrit from \"$ZIP_URI\""
+  archive_file="$DOWNLOAD_TO/$ARCHIVE"
+  mkdir -p "$DOWNLOAD_TO" || error "Failed to create awrit directory \"$DOWNLOAD_TO\""
+  curl --fail --location --progress-bar --output "$archive_file" "$ARCHIVE_URI" ||
+    error "Failed to download awrit from \"$ARCHIVE_URI\""
 
-      unzip -oqd "$DOWNLOAD_TO" $zip_file ||
-        error 'Failed to extract awrit'
+  tar -xzf "$archive_file" --strip-components=1 -C "$DOWNLOAD_TO" ||
+    error 'Failed to extract awrit'
 
-      chmod +x "$DOWNLOAD_TO/setup.sh" "$DOWNLOAD_TO/awrit"
-      rm $zip_file
+  chmod +x "$DOWNLOAD_TO/setup.sh" "$DOWNLOAD_TO/awrit"
+  rm "$archive_file"
 fi
 
 mkdir -p $DOWNLOAD_TO/node_modules

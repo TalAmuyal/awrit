@@ -137,11 +137,11 @@ Then:
 3. Make your changes (run `mise check` before committing)
 4. Write commit messages that make the intent clear to a reviewer
 5. Push the commit to your fork
-6. Open a pull request against `electron` with:
+6. Open a pull request against `master` with:
    - A description of what it contributes and why, or what bugs it fixes
    - Links to related discussions or issues
 7. Wait for review
-   - Resolve any conflicts with `electron`
+   - Resolve any conflicts with `master`
    - Push requested changes to the same branch
    - Once approved and clean, it will be merged
 
