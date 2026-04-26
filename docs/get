@@ -3,8 +3,9 @@ set -euo pipefail
 
 # Based off of https://bun.sh/install
 
-DOWNLOAD_TO=${DOWNLOAD_TO-"$HOME/awrit"}
+DOWNLOAD_TO=${DOWNLOAD_TO-"${XDG_DATA_HOME:-$HOME/.local/share}/awrit"}
 INSTALL_TO=${INSTALL_TO-"$HOME/.local"}
+CONFIG_DIR=${XDG_CONFIG_HOME:-$HOME/.config}/awrit
 
 REPO='https://github.com/TalAmuyal/awrit'
 BRANCH='electron'
@@ -64,6 +65,15 @@ tildify() {
   fi
 }
 
+if [[ -d "$HOME/awrit" && "$DOWNLOAD_TO" != "$HOME/awrit" ]]; then
+  if [[ -f "$HOME/awrit/config.js" && ! -f "$CONFIG_DIR/config.js" ]]; then
+    mkdir -p "$CONFIG_DIR" || error "Failed to create config directory \"$CONFIG_DIR\""
+    cp "$HOME/awrit/config.js" "$CONFIG_DIR/config.js" || error "Failed to migrate config from ~/awrit/config.js"
+    info "Migrated config from $(tildify "$HOME/awrit/config.js") to $(tildify "$CONFIG_DIR/config.js")"
+  fi
+  info "Detected old awrit install at $(tildify "$HOME/awrit"). awrit now installs to $(tildify "$DOWNLOAD_TO") and reads its config from $(tildify "$CONFIG_DIR/config.js"). Remove $(tildify "$HOME/awrit") when you are satisfied with the migration."
+fi
+
 bin_dir="$INSTALL_TO/bin"
 add_to_path=false
 
@@ -88,12 +98,6 @@ else
   zip_file="$DOWNLOAD_TO/$ZIP"
   curl --fail --location --progress-bar --output $zip_file "$ZIP_URI" ||
     error "Failed to download awrit from \"$ZIP_URI\""
-      config_path="$DOWNLOAD_TO/config.js"
-      config_exists=false
-      if [[ -f $config_path ]]; then
-        config_exists=true
-        mv "$config_path" "${config_path}.bak"
-      fi
 
       unzip -oqd "$DOWNLOAD_TO" $zip_file ||
         error 'Failed to extract awrit'
@@ -105,6 +109,14 @@ fi
 mkdir -p $DOWNLOAD_TO/node_modules
 (cd $DOWNLOAD_TO && bash setup.sh)
 rmdir $DOWNLOAD_TO/node_modules &>/dev/null || true
+
+mkdir -p "$CONFIG_DIR" || error "Failed to create config directory \"$CONFIG_DIR\""
+if [[ ! -f "$CONFIG_DIR/config.js" ]]; then
+  cp "$DOWNLOAD_TO/config.example.js" "$CONFIG_DIR/config.js" || error "Failed to seed config from template"
+  info "Seeded $(tildify "$CONFIG_DIR/config.js") from template"
+else
+  info "Config already exists at $(tildify "$CONFIG_DIR/config.js"), leaving it alone"
+fi
 
 BUN_INSTALL_DIR=$DOWNLOAD_TO/.bun/bin
 BUN_EXE=$BUN_INSTALL_DIR/bun
@@ -133,6 +145,7 @@ fi
 if [[ $add_to_path = false ]]; then
   success "awrit was successfully installed to $Bold_Green$(tildify $DOWNLOAD_TO)"
   echo
+  info "Configure awrit by editing $(tildify "$CONFIG_DIR/config.js")"
   info "To get started, run:"
   info_bold "  awrit --help"
   exit 0
@@ -255,6 +268,7 @@ case $(basename "$SHELL") in
 esac
 
 echo
+info "Configure awrit by editing $(tildify "$CONFIG_DIR/config.js")"
 info "To get started, run:"
 
 if [[ $refresh_command ]]; then

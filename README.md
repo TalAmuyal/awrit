@@ -21,9 +21,9 @@ Yep, actual Chromium being rendered in your favorite terminal that supports the 
 curl -fsS https://talamuyal.github.io/awrit/get | bash
 ```
 
-By default, this will download to `~/awrit` and link to `~/.local/bin/awrit`.
+By default, this will download to `~/.local/share/awrit` (honors `$XDG_DATA_HOME`) and link to `~/.local/bin/awrit`.
 
-You can configure `awrit` by changing `~/awrit/config.js`. See [Configuration](#configuration) for more information.
+You can configure `awrit` by editing `~/.config/awrit/config.js` (or `$XDG_CONFIG_HOME/awrit/config.js` if set). See [Configuration](#configuration) for more information.
 
 #### (Optional) Change Download Location or Install Prefix
 
@@ -53,11 +53,11 @@ awrit --help
 
 ## Configuration
 
-`awrit` can be configured through `config.js` in the project root. Changes to it will update the config in any running `awrit`.
+`awrit` can be configured through `~/.config/awrit/config.js` (or `$XDG_CONFIG_HOME/awrit/config.js`). It is seeded from `config.example.js` on first install. Changes to it will update the config in any running `awrit`.
 
 Currently it supports custom keybindings, the homepage that displays when no URL is provided, and loading local unpacked Chrome extensions via `userExtensions`.
 
-For more details on keybinding syntax, available actions, and the `userExtensions` array, see the comments in `config.js`.
+For more details on keybinding syntax, available actions, and the `userExtensions` array, see the comments in your `config.js` (or in [`config.example.js`](/config.example.js) in the repo).
 
 ## Contributing
 

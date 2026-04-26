@@ -1,7 +1,7 @@
 /** Homepage
  * The page that's displayed by default when no URL is provided
  **/
-const homepage = 'https://github.com/chase/awrit';
+const homepage = 'https://github.com/TalAmuyal/awrit';
 
 /** Extensions
  * Paths to unpacked Chrome extensions. `~/` is expanded; relative paths resolve against this file's directory.
