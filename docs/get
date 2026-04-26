@@ -3,9 +3,9 @@ set -euo pipefail
 
 # Based off of https://bun.sh/install
 
-DOWNLOAD_TO=${DOWNLOAD_TO-"${XDG_DATA_HOME:-$HOME/.local/share}/awrit"}
-INSTALL_TO=${INSTALL_TO-"$HOME/.local"}
-CONFIG_DIR=${XDG_CONFIG_HOME:-$HOME/.config}/awrit
+DOWNLOAD_TO="${DOWNLOAD_TO-"${XDG_DATA_HOME:-$HOME/.local/share}/awrit"}"
+INSTALL_TO="${INSTALL_TO:-}"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/awrit"
 
 REPO='https://github.com/TalAmuyal/awrit'
 BRANCH='master'
@@ -44,15 +44,15 @@ error() {
 }
 
 info() {
-  echo -e "${Dim}$@ ${Color_Off}"
+  echo -e "${Dim}$* ${Color_Off}"
 }
 
 info_bold() {
-  echo -e "${Bold_White}$@ ${Color_Off}"
+  echo -e "${Bold_White}$* ${Color_Off}"
 }
 
 success() {
-  echo -e "${Green}$@ ${Color_Off}"
+  echo -e "${Green}$* ${Color_Off}"
 }
 
 tildify() {
@@ -74,21 +74,13 @@ if [[ -d "$HOME/awrit" && "$DOWNLOAD_TO" != "$HOME/awrit" ]]; then
   info "Detected old awrit install at $(tildify "$HOME/awrit"). awrit now installs to $(tildify "$DOWNLOAD_TO") and reads its config from $(tildify "$CONFIG_DIR/config.js"). Remove $(tildify "$HOME/awrit") when you are satisfied with the migration."
 fi
 
-bin_dir="$INSTALL_TO/bin"
-add_to_path=false
-
-if [[ ! -d $bin_dir ]]; then
-  mkdir -p "$bin_dir" || error "Failed to create install directory \"$bin_dir\""
-  add_to_path=true
-fi
-
 if which git >/dev/null; then
   if [[ -d "$DOWNLOAD_TO" ]]; then
     info_bold "Updating awrit using git"
     (cd "$DOWNLOAD_TO" && (git pull || error "Failed to pull awrit in \"$DOWNLOAD_TO\""))
   else
     info_bold "Downloading awrit using git"
-    git clone $REPO $DOWNLOAD_TO || error "Failed to clone awrit to \"$DOWNLOAD_TO\""
+    git clone "$REPO" "$DOWNLOAD_TO" || error "Failed to clone awrit to \"$DOWNLOAD_TO\""
   fi
 else
   info_bold ""
@@ -106,9 +98,9 @@ else
   rm "$archive_file"
 fi
 
-mkdir -p $DOWNLOAD_TO/node_modules
-(cd $DOWNLOAD_TO && bash setup.sh)
-rmdir $DOWNLOAD_TO/node_modules &>/dev/null || true
+mkdir -p "$DOWNLOAD_TO/node_modules"
+(cd "$DOWNLOAD_TO" && bash setup.sh)
+rmdir "$DOWNLOAD_TO/node_modules" &>/dev/null || true
 
 mkdir -p "$CONFIG_DIR" || error "Failed to create config directory \"$CONFIG_DIR\""
 if [[ ! -f "$CONFIG_DIR/config.js" ]]; then
@@ -118,12 +110,12 @@ else
   info "Config already exists at $(tildify "$CONFIG_DIR/config.js"), leaving it alone"
 fi
 
-BUN_INSTALL_DIR=$DOWNLOAD_TO/.bun/bin
-BUN_EXE=$BUN_INSTALL_DIR/bun
+BUN_INSTALL_DIR="$DOWNLOAD_TO/.bun/bin"
+BUN_EXE="$BUN_INSTALL_DIR/bun"
 
 # Install/update awrit-native-rs and Bun dependencies
 (cd "$DOWNLOAD_TO/awrit-native-rs" && "$BUN_EXE" scripts/download-binary.js)
-(cd $DOWNLOAD_TO && "$BUN_EXE" install)
+(cd "$DOWNLOAD_TO" && "$BUN_EXE" install)
 
 echo
 
@@ -132,147 +124,89 @@ if [ "$(uname -s)" = "Darwin" ]; then
   sed -i '' 's/<\/dict>/    <key>LSUIElement<\/key>\n    <true\/>\n<\/dict>/' "$DOWNLOAD_TO/node_modules/electron/dist/Electron.app/Contents/Info.plist" || true
 fi
 
-# Install link to $INSTALL_TO/bin/awrit
-exe="$bin_dir/awrit"
-if [[ ! -e $exe ]]; then
-  (cd "$bin_dir" && ln -s "$DOWNLOAD_TO/awrit")
-else
-  info_bold "$(tildify $exe) already exists, skipping link install"
-  echo
-fi
+install_symlink() {
+  local target_dir="$1"
+  local exe="$target_dir/awrit"
+  if [[ -L "$exe" && ! -e "$exe" ]]; then
+    rm "$exe"
+  fi
+  if [[ ! -e "$exe" ]]; then
+    (cd "$target_dir" && ln -s "$DOWNLOAD_TO/awrit")
+  else
+    info_bold "$(tildify "$exe") already exists, skipping link install"
+    echo
+  fi
+}
 
-# Install path if necessary
-if [[ $add_to_path = false ]]; then
-  success "awrit was successfully installed to $Bold_Green$(tildify $DOWNLOAD_TO)"
+print_manual_path_instructions() {
+  local target_dir="$1"
+
+  info "Could not find a directory in your \$PATH suitable for installing awrit."
+  info "awrit was installed to $(tildify "$target_dir"), but you'll need to add it to your \$PATH yourself."
+
+  case $(basename "$SHELL") in
+    fish)
+      info "Add the following line to $(tildify "$HOME/.config/fish/config.fish"):"
+      info_bold "  set --export PATH $target_dir \$PATH"
+      ;;
+    zsh)
+      info "Add the following line to $(tildify "$HOME/.zshrc"):"
+      info_bold "  export PATH=\"$target_dir:\$PATH\""
+      ;;
+    bash)
+      info "Add the following line to $(tildify "$HOME/.bashrc") (or $(tildify "$HOME/.bash_profile")):"
+      info_bold "  export PATH=\"$target_dir:\$PATH\""
+      ;;
+    *)
+      info "Add the following line to your shell configuration:"
+      info_bold "  export PATH=\"$target_dir:\$PATH\""
+      ;;
+  esac
+}
+
+print_success_message() {
+  local target_dir="$1"
+  success "awrit was successfully installed to $Bold_Green$(tildify "$DOWNLOAD_TO")"
   echo
   info "Configure awrit by editing $(tildify "$CONFIG_DIR/config.js")"
   info "To get started, run:"
   info_bold "  awrit --help"
+}
+
+if [[ -n "$INSTALL_TO" ]]; then
+  bin_dir="$INSTALL_TO/bin"
+  mkdir -p "$bin_dir" || error "Failed to create install directory \"$bin_dir\""
+  install_symlink "$bin_dir"
+  print_success_message "$bin_dir"
   exit 0
 fi
 
-refresh_command=''
+candidates=(
+  "$HOME/.local/bin"
+  "$HOME/bin"
+  "/usr/local/bin"
+  "/opt/homebrew/bin"
+)
 
-install_dir="$DOWNLOAD_TO"
-tilde_bin_dir=$(tildify "$bin_dir")
-
-case $(basename "$SHELL") in
-  fish)
-    commands=(
-      "set --export PATH $bin_dir \$PATH"
-    )
-
-    fish_config=$HOME/.config/fish/config.fish
-    tilde_fish_config=$(tildify "$fish_config")
-
-    if [[ -w $fish_config ]]; then
-      {
-        echo -e '\n# awrit'
-
-        for command in "${commands[@]}"; do
-          echo "$command"
-        done
-      } >>"$fish_config"
-
-      info "Added \"$tilde_bin_dir\" to \$PATH in \"$tilde_fish_config\""
-
-      refresh_command="source $(tildify $tilde_fish_config)"
-    else
-      echo "Manually add the directory to $tilde_fish_config (or similar):"
-
-      for command in "${commands[@]}"; do
-        info_bold "  $command"
-      done
+bin_dir=""
+for candidate in "${candidates[@]}"; do
+  if [[ -d "$candidate" && ":$PATH:" == *":$candidate:"* ]]; then
+    probe="$candidate/.awrit-install-probe.$$"
+    if (touch "$probe" && rm -f "$probe") 2>/dev/null; then
+      bin_dir="$candidate"
+      break
     fi
-    ;;
-  zsh)
-    commands=(
-      "export PATH=\"$bin_dir:\$PATH\""
-    )
+  fi
+done
 
-    zsh_config=$HOME/.zshrc
-    tilde_zsh_config=$(tildify "$zsh_config")
-
-    if [[ -w $zsh_config ]]; then
-      {
-        echo -e '\n# awrit'
-
-        for command in "${commands[@]}"; do
-          echo "$command"
-        done
-      } >>"$zsh_config"
-
-      info "Added \"$tilde_bin_dir\" to \$PATH in \"$tilde_zsh_config\""
-
-      refresh_command="exec $SHELL"
-    else
-      echo "Manually add $tilde_bin_dir to $tilde_zsh_config (or similar):"
-
-      for command in "${commands[@]}"; do
-        info_bold "  $command"
-      done
-    fi
-    ;;
-  bash)
-    commands=(
-      "export PATH=\"$bin_dir:\$PATH\""
-    )
-
-    bash_configs=(
-      "$HOME/.bashrc"
-      "$HOME/.bash_profile"
-    )
-
-    if [[ ${XDG_CONFIG_HOME:-} ]]; then
-      bash_configs+=(
-      "$XDG_CONFIG_HOME/.bash_profile"
-      "$XDG_CONFIG_HOME/.bashrc"
-      "$XDG_CONFIG_HOME/bash_profile"
-      "$XDG_CONFIG_HOME/bashrc"
-    )
-    fi
-
-    set_manually=true
-    for bash_config in "${bash_configs[@]}"; do
-      tilde_bash_config=$(tildify "$bash_config")
-
-      if [[ -w $bash_config ]]; then
-        {
-          echo -e '\n# awrit'
-
-          for command in "${commands[@]}"; do
-            echo "$command"
-          done
-        } >>"$bash_config"
-
-        info "Added \"$tilde_bin_dir\" to \$PATH in \"$tilde_bash_config\""
-
-        refresh_command="source $(tildify $bash_config)"
-        set_manually=false
-        break
-      fi
-    done
-
-    if [[ $set_manually = true ]]; then
-      echo "Manually add $tilde_bin_dir to $tilde_bash_config (or similar):"
-
-      for command in "${commands[@]}"; do
-        info_bold "  $command"
-      done
-    fi
-    ;;
-  *)
-    echo 'Manually add the directory to ~/.bashrc (or similar):'
-    info_bold "  export PATH=\"$bin_dir:\$PATH\""
-    ;;
-esac
-
-echo
-info "Configure awrit by editing $(tildify "$CONFIG_DIR/config.js")"
-info "To get started, run:"
-
-if [[ $refresh_command ]]; then
-  info_bold "  $refresh_command"
+if [[ -n "$bin_dir" ]]; then
+  install_symlink "$bin_dir"
+  print_success_message "$bin_dir"
+  exit 0
 fi
 
-info_bold "  awrit --help"
+bin_dir="$HOME/.local/bin"
+mkdir -p "$bin_dir" || error "Failed to create install directory \"$bin_dir\""
+install_symlink "$bin_dir"
+print_manual_path_instructions "$bin_dir"
+print_success_message "$bin_dir"
