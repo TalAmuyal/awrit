@@ -6,6 +6,25 @@ BASE_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" &>/dev/null && pwd)
 BUN_INSTALL_DIR=$BASE_DIR/.bun
 BUN_BIN_DIR=$BUN_INSTALL_DIR/bin
 
+Color_Off=''
+Red=''
+Dim=''
+
+if [[ -t 1 ]]; then
+  Color_Off='\033[0m'
+  Red='\033[0;31m'
+  Dim='\033[0;2m'
+fi
+
+error() {
+  echo -e "${Red}error${Color_Off}:" "$@" >&2
+  exit 1
+}
+
+info() {
+  echo -e "${Dim}$* ${Color_Off}"
+}
+
 if command -v bun >/dev/null 2>&1; then
   BUN_EXE=$(command -v bun)
   printf 'Using bun from PATH: %s\n' "$BUN_EXE"
