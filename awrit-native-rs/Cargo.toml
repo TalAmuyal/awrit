@@ -17,6 +17,7 @@ base64 = "0.22.1"
 bgra-to-rgba = { path = "crates/bgra-to-rgba" }
 crossterm = { path = "crates/crossterm" }
 
+
 [build-dependencies]
 napi-build = "2.2.3"
 
