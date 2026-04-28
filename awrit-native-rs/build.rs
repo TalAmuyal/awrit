@@ -8,4 +8,11 @@ fn main() {
   {
     println!("cargo:rustc-env=RUSTFLAGS=-Ctarget-cpu=haswell");
   }
+
+  // IOSurface framework linkage for shared-texture path on macOS.
+  #[cfg(target_os = "macos")]
+  {
+    println!("cargo:rustc-link-lib=framework=IOSurface");
+    println!("cargo:rustc-link-lib=framework=CoreFoundation");
+  }
 }

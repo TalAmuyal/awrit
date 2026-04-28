@@ -21,6 +21,6 @@
 		"artifacts": "napi artifacts",
 		"make": "napi build --platform --release && ./run-shim scripts/fix-types.js",
 		"ci": "napi build --platform --release",
-		"make:debug": "napi build --platform"
+		"make:debug": "napi build --platform && ./run-shim scripts/fix-types.js"
 	}
 }

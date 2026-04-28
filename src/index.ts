@@ -163,6 +163,7 @@ app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-zero-copy');
 app.commandLine.appendSwitch('ignore-gpu-blocklist');
 
+
 app.whenReady().then(async () => {
   await loadUserExtensions(userExtensions, CONFIG_PATH_RESOLVED);
   const window = await createWindowWithToolbar(getWindowSize(), INITIAL_URL);
