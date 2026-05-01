@@ -22,7 +22,7 @@ const TOC_ACTIVE_ZONE = '0px 0px -70% 0px';
 
 const STYLES = `
 html { scroll-behavior: smooth; }
-.awrit-markdown {
+.glimpse-tty-markdown {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.6;
@@ -31,51 +31,51 @@ html { scroll-behavior: smooth; }
   margin: 2rem auto;
   padding: 0 1.5rem;
 }
-.awrit-markdown a.external::after {
+.glimpse-tty-markdown a.external::after {
   content: ' \\2197';
   font-size: 0.85em;
   opacity: 0.6;
 }
-.awrit-markdown h1, .awrit-markdown h2 {
+.glimpse-tty-markdown h1, .glimpse-tty-markdown h2 {
   border-bottom: 1px solid #d0d7de;
   padding-bottom: 0.3em;
 }
-.awrit-markdown h1, .awrit-markdown h2, .awrit-markdown h3,
-.awrit-markdown h4, .awrit-markdown h5, .awrit-markdown h6 {
+.glimpse-tty-markdown h1, .glimpse-tty-markdown h2, .glimpse-tty-markdown h3,
+.glimpse-tty-markdown h4, .glimpse-tty-markdown h5, .glimpse-tty-markdown h6 {
   scroll-margin-top: 1rem;
 }
-.awrit-markdown h1 .anchor, .awrit-markdown h2 .anchor, .awrit-markdown h3 .anchor,
-.awrit-markdown h4 .anchor, .awrit-markdown h5 .anchor, .awrit-markdown h6 .anchor {
+.glimpse-tty-markdown h1 .anchor, .glimpse-tty-markdown h2 .anchor, .glimpse-tty-markdown h3 .anchor,
+.glimpse-tty-markdown h4 .anchor, .glimpse-tty-markdown h5 .anchor, .glimpse-tty-markdown h6 .anchor {
   margin-left: 0.4em;
   opacity: 0;
   text-decoration: none;
   color: inherit;
   font-weight: 400;
 }
-.awrit-markdown h1:hover .anchor, .awrit-markdown h2:hover .anchor,
-.awrit-markdown h3:hover .anchor, .awrit-markdown h4:hover .anchor,
-.awrit-markdown h5:hover .anchor, .awrit-markdown h6:hover .anchor { opacity: 0.5; }
-.awrit-markdown a { color: #0969da; }
-.awrit-markdown code {
+.glimpse-tty-markdown h1:hover .anchor, .glimpse-tty-markdown h2:hover .anchor,
+.glimpse-tty-markdown h3:hover .anchor, .glimpse-tty-markdown h4:hover .anchor,
+.glimpse-tty-markdown h5:hover .anchor, .glimpse-tty-markdown h6:hover .anchor { opacity: 0.5; }
+.glimpse-tty-markdown a { color: #0969da; }
+.glimpse-tty-markdown code {
   background: #afb8c133;
   padding: 0.2em 0.4em;
   border-radius: 6px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.875em;
 }
-.awrit-markdown pre {
+.glimpse-tty-markdown pre {
   position: relative;
   background: #f6f8fa;
   padding: 1em;
   border-radius: 6px;
   overflow: auto;
 }
-.awrit-markdown pre code {
+.glimpse-tty-markdown pre code {
   background: transparent;
   padding: 0;
   font-size: 0.875em;
 }
-.awrit-markdown pre .copy-button {
+.glimpse-tty-markdown pre .copy-button {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
@@ -89,9 +89,9 @@ html { scroll-behavior: smooth; }
   opacity: 0;
   transition: opacity 0.15s;
 }
-.awrit-markdown pre:hover .copy-button { opacity: 1; }
-.awrit-markdown pre .copy-button.copied { color: #1a7f37; border-color: #1a7f37; }
-.awrit-markdown pre .lang-label {
+.glimpse-tty-markdown pre:hover .copy-button { opacity: 1; }
+.glimpse-tty-markdown pre .copy-button.copied { color: #1a7f37; border-color: #1a7f37; }
+.glimpse-tty-markdown pre .lang-label {
   position: absolute;
   top: 0.5rem;
   right: 4.5rem;
@@ -104,13 +104,13 @@ html { scroll-behavior: smooth; }
   user-select: none;
 }
 
-.awrit-markdown .markdown-alert {
+.glimpse-tty-markdown .markdown-alert {
   border-left: 4px solid;
   padding: 0.5em 1em;
   margin: 1em 0;
   background: transparent;
 }
-.awrit-markdown .markdown-alert > .markdown-alert-title {
+.glimpse-tty-markdown .markdown-alert > .markdown-alert-title {
   display: flex;
   align-items: center;
   gap: 0.4em;
@@ -118,55 +118,55 @@ html { scroll-behavior: smooth; }
   margin: 0 0 0.5em 0;
   text-transform: capitalize;
 }
-.awrit-markdown .markdown-alert-note { border-color: #0969da; }
-.awrit-markdown .markdown-alert-note > .markdown-alert-title { color: #0969da; }
-.awrit-markdown .markdown-alert-tip { border-color: #1a7f37; }
-.awrit-markdown .markdown-alert-tip > .markdown-alert-title { color: #1a7f37; }
-.awrit-markdown .markdown-alert-important { border-color: #8250df; }
-.awrit-markdown .markdown-alert-important > .markdown-alert-title { color: #8250df; }
-.awrit-markdown .markdown-alert-warning { border-color: #9a6700; }
-.awrit-markdown .markdown-alert-warning > .markdown-alert-title { color: #9a6700; }
-.awrit-markdown .markdown-alert-caution { border-color: #cf222e; }
-.awrit-markdown .markdown-alert-caution > .markdown-alert-title { color: #cf222e; }
+.glimpse-tty-markdown .markdown-alert-note { border-color: #0969da; }
+.glimpse-tty-markdown .markdown-alert-note > .markdown-alert-title { color: #0969da; }
+.glimpse-tty-markdown .markdown-alert-tip { border-color: #1a7f37; }
+.glimpse-tty-markdown .markdown-alert-tip > .markdown-alert-title { color: #1a7f37; }
+.glimpse-tty-markdown .markdown-alert-important { border-color: #8250df; }
+.glimpse-tty-markdown .markdown-alert-important > .markdown-alert-title { color: #8250df; }
+.glimpse-tty-markdown .markdown-alert-warning { border-color: #9a6700; }
+.glimpse-tty-markdown .markdown-alert-warning > .markdown-alert-title { color: #9a6700; }
+.glimpse-tty-markdown .markdown-alert-caution { border-color: #cf222e; }
+.glimpse-tty-markdown .markdown-alert-caution > .markdown-alert-title { color: #cf222e; }
 
-.awrit-markdown section.footnotes {
+.glimpse-tty-markdown section.footnotes {
   margin-top: 2.5em;
   padding-top: 1em;
   border-top: 1px solid #d0d7de;
   font-size: 0.9em;
   color: #6a737d;
 }
-.awrit-markdown section.footnotes ol { padding-left: 1.5em; }
-.awrit-markdown section.footnotes li { margin-bottom: 0.4em; }
-.awrit-markdown blockquote {
+.glimpse-tty-markdown section.footnotes ol { padding-left: 1.5em; }
+.glimpse-tty-markdown section.footnotes li { margin-bottom: 0.4em; }
+.glimpse-tty-markdown blockquote {
   color: #6a737d;
   border-left: 4px solid #dfe2e5;
   padding: 0 1em;
   margin: 0;
 }
-.awrit-markdown table { border-collapse: collapse; margin: 1em 0; }
-.awrit-markdown th, .awrit-markdown td {
+.glimpse-tty-markdown table { border-collapse: collapse; margin: 1em 0; }
+.glimpse-tty-markdown th, .glimpse-tty-markdown td {
   border: 1px solid #d0d7de;
   padding: 6px 13px;
 }
-.awrit-markdown img { max-width: 100%; }
-.awrit-markdown hr {
+.glimpse-tty-markdown img { max-width: 100%; }
+.glimpse-tty-markdown hr {
   border: 0;
   border-top: 1px solid #d0d7de;
   margin: 1.5em 0;
 }
-.awrit-markdown ul.contains-task-list { padding-left: 1.2em; list-style: none; }
-.awrit-markdown li.task-list-item { position: relative; padding-left: 1.4em; }
-.awrit-markdown li.task-list-item input[type="checkbox"] {
+.glimpse-tty-markdown ul.contains-task-list { padding-left: 1.2em; list-style: none; }
+.glimpse-tty-markdown li.task-list-item { position: relative; padding-left: 1.4em; }
+.glimpse-tty-markdown li.task-list-item input[type="checkbox"] {
   position: absolute;
   left: 0;
   top: 0.35em;
   margin: 0;
 }
-.awrit-mermaid { display: flex; justify-content: center; margin: 1em 0; }
-.awrit-mermaid svg { max-width: 100%; height: auto; }
+.glimpse-tty-mermaid { display: flex; justify-content: center; margin: 1em 0; }
+.glimpse-tty-mermaid svg { max-width: 100%; height: auto; }
 
-.awrit-toc {
+.glimpse-tty-toc {
   position: fixed;
   top: 2rem;
   right: 1rem;
@@ -176,9 +176,9 @@ html { scroll-behavior: smooth; }
   font-size: 0.85em;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
 }
-.awrit-toc ul { list-style: none; padding: 0; margin: 0; }
-.awrit-toc li.awrit-toc-h3 { padding-left: 1em; }
-.awrit-toc a {
+.glimpse-tty-toc ul { list-style: none; padding: 0; margin: 0; }
+.glimpse-tty-toc li.glimpse-tty-toc-h3 { padding-left: 1em; }
+.glimpse-tty-toc a {
   display: block;
   padding: 0.2em 0 0.2em 0.75em;
   margin-left: -2px;
@@ -188,92 +188,92 @@ html { scroll-behavior: smooth; }
   line-height: 1.3;
   transition: color 0.1s, border-color 0.1s;
 }
-.awrit-toc a:hover { color: #0969da; }
-.awrit-toc a.active {
+.glimpse-tty-toc a:hover { color: #0969da; }
+.glimpse-tty-toc a.active {
   color: #24292f;
   border-left-color: #0969da;
   font-weight: 500;
 }
 @media (max-width: ${TOC_MIN_VIEWPORT_WIDTH - 1}px) {
-  .awrit-toc { display: none; }
+  .glimpse-tty-toc { display: none; }
 }
 
-.awrit-markdown .hljs { color: #24292f; background: #f6f8fa; }
-.awrit-markdown .hljs-keyword,
-.awrit-markdown .hljs-meta,
-.awrit-markdown .hljs-built_in { color: #cf222e; }
-.awrit-markdown .hljs-string,
-.awrit-markdown .hljs-attr { color: #0a3069; }
-.awrit-markdown .hljs-comment,
-.awrit-markdown .hljs-quote { color: #6e7781; font-style: italic; }
-.awrit-markdown .hljs-number,
-.awrit-markdown .hljs-literal { color: #0550ae; }
-.awrit-markdown .hljs-function,
-.awrit-markdown .hljs-title,
-.awrit-markdown .hljs-section { color: #8250df; }
-.awrit-markdown .hljs-variable,
-.awrit-markdown .hljs-params { color: #24292f; }
-.awrit-markdown .hljs-tag,
-.awrit-markdown .hljs-name,
-.awrit-markdown .hljs-selector-tag { color: #116329; }
-.awrit-markdown .hljs-symbol,
-.awrit-markdown .hljs-bullet,
-.awrit-markdown .hljs-link { color: #cf222e; }
-.awrit-markdown .hljs-deletion { color: #82071e; background: #ffebe9; }
-.awrit-markdown .hljs-addition { color: #116329; background: #dafbe1; }
+.glimpse-tty-markdown .hljs { color: #24292f; background: #f6f8fa; }
+.glimpse-tty-markdown .hljs-keyword,
+.glimpse-tty-markdown .hljs-meta,
+.glimpse-tty-markdown .hljs-built_in { color: #cf222e; }
+.glimpse-tty-markdown .hljs-string,
+.glimpse-tty-markdown .hljs-attr { color: #0a3069; }
+.glimpse-tty-markdown .hljs-comment,
+.glimpse-tty-markdown .hljs-quote { color: #6e7781; font-style: italic; }
+.glimpse-tty-markdown .hljs-number,
+.glimpse-tty-markdown .hljs-literal { color: #0550ae; }
+.glimpse-tty-markdown .hljs-function,
+.glimpse-tty-markdown .hljs-title,
+.glimpse-tty-markdown .hljs-section { color: #8250df; }
+.glimpse-tty-markdown .hljs-variable,
+.glimpse-tty-markdown .hljs-params { color: #24292f; }
+.glimpse-tty-markdown .hljs-tag,
+.glimpse-tty-markdown .hljs-name,
+.glimpse-tty-markdown .hljs-selector-tag { color: #116329; }
+.glimpse-tty-markdown .hljs-symbol,
+.glimpse-tty-markdown .hljs-bullet,
+.glimpse-tty-markdown .hljs-link { color: #cf222e; }
+.glimpse-tty-markdown .hljs-deletion { color: #82071e; background: #ffebe9; }
+.glimpse-tty-markdown .hljs-addition { color: #116329; background: #dafbe1; }
 
 @media (prefers-color-scheme: dark) {
   body { background: #0d1117; }
-  .awrit-markdown { color: #c9d1d9; }
-  .awrit-markdown h1, .awrit-markdown h2 { border-bottom-color: #21262d; }
-  .awrit-markdown a { color: #58a6ff; }
-  .awrit-markdown code { background: #6e768166; }
-  .awrit-markdown pre { background: #161b22; }
-  .awrit-markdown pre .copy-button {
+  .glimpse-tty-markdown { color: #c9d1d9; }
+  .glimpse-tty-markdown h1, .glimpse-tty-markdown h2 { border-bottom-color: #21262d; }
+  .glimpse-tty-markdown a { color: #58a6ff; }
+  .glimpse-tty-markdown code { background: #6e768166; }
+  .glimpse-tty-markdown pre { background: #161b22; }
+  .glimpse-tty-markdown pre .copy-button {
     background: #21262dd9;
     border-color: #30363d;
     color: #c9d1d9;
   }
-  .awrit-markdown pre .copy-button.copied { color: #56d364; border-color: #56d364; }
-  .awrit-markdown blockquote { color: #8b949e; border-left-color: #30363d; }
-  .awrit-markdown th, .awrit-markdown td { border-color: #30363d; }
-  .awrit-markdown hr { border-top-color: #30363d; }
-  .awrit-markdown section.footnotes { color: #8b949e; border-top-color: #30363d; }
-  .awrit-markdown .markdown-alert-note { border-color: #1f6feb; }
-  .awrit-markdown .markdown-alert-note > .markdown-alert-title { color: #58a6ff; }
-  .awrit-markdown .markdown-alert-tip { border-color: #238636; }
-  .awrit-markdown .markdown-alert-tip > .markdown-alert-title { color: #56d364; }
-  .awrit-markdown .markdown-alert-important { border-color: #8957e5; }
-  .awrit-markdown .markdown-alert-important > .markdown-alert-title { color: #d2a8ff; }
-  .awrit-markdown .markdown-alert-warning { border-color: #9e6a03; }
-  .awrit-markdown .markdown-alert-warning > .markdown-alert-title { color: #d29922; }
-  .awrit-markdown .markdown-alert-caution { border-color: #da3633; }
-  .awrit-markdown .markdown-alert-caution > .markdown-alert-title { color: #ff7b72; }
+  .glimpse-tty-markdown pre .copy-button.copied { color: #56d364; border-color: #56d364; }
+  .glimpse-tty-markdown blockquote { color: #8b949e; border-left-color: #30363d; }
+  .glimpse-tty-markdown th, .glimpse-tty-markdown td { border-color: #30363d; }
+  .glimpse-tty-markdown hr { border-top-color: #30363d; }
+  .glimpse-tty-markdown section.footnotes { color: #8b949e; border-top-color: #30363d; }
+  .glimpse-tty-markdown .markdown-alert-note { border-color: #1f6feb; }
+  .glimpse-tty-markdown .markdown-alert-note > .markdown-alert-title { color: #58a6ff; }
+  .glimpse-tty-markdown .markdown-alert-tip { border-color: #238636; }
+  .glimpse-tty-markdown .markdown-alert-tip > .markdown-alert-title { color: #56d364; }
+  .glimpse-tty-markdown .markdown-alert-important { border-color: #8957e5; }
+  .glimpse-tty-markdown .markdown-alert-important > .markdown-alert-title { color: #d2a8ff; }
+  .glimpse-tty-markdown .markdown-alert-warning { border-color: #9e6a03; }
+  .glimpse-tty-markdown .markdown-alert-warning > .markdown-alert-title { color: #d29922; }
+  .glimpse-tty-markdown .markdown-alert-caution { border-color: #da3633; }
+  .glimpse-tty-markdown .markdown-alert-caution > .markdown-alert-title { color: #ff7b72; }
 
-  .awrit-toc a { border-left-color: #30363d; color: #8b949e; }
-  .awrit-toc a:hover { color: #58a6ff; }
-  .awrit-toc a.active { color: #c9d1d9; border-left-color: #58a6ff; }
+  .glimpse-tty-toc a { border-left-color: #30363d; color: #8b949e; }
+  .glimpse-tty-toc a:hover { color: #58a6ff; }
+  .glimpse-tty-toc a.active { color: #c9d1d9; border-left-color: #58a6ff; }
 
-  .awrit-markdown .hljs { color: #c9d1d9; background: #161b22; }
-  .awrit-markdown .hljs-keyword,
-  .awrit-markdown .hljs-meta,
-  .awrit-markdown .hljs-built_in { color: #ff7b72; }
-  .awrit-markdown .hljs-string,
-  .awrit-markdown .hljs-attr { color: #a5d6ff; }
-  .awrit-markdown .hljs-comment,
-  .awrit-markdown .hljs-quote { color: #8b949e; }
-  .awrit-markdown .hljs-number,
-  .awrit-markdown .hljs-literal { color: #79c0ff; }
-  .awrit-markdown .hljs-function,
-  .awrit-markdown .hljs-title,
-  .awrit-markdown .hljs-section { color: #d2a8ff; }
-  .awrit-markdown .hljs-variable,
-  .awrit-markdown .hljs-params { color: #c9d1d9; }
-  .awrit-markdown .hljs-tag,
-  .awrit-markdown .hljs-name,
-  .awrit-markdown .hljs-selector-tag { color: #7ee787; }
-  .awrit-markdown .hljs-deletion { color: #ffdcd7; background: #67060c; }
-  .awrit-markdown .hljs-addition { color: #aff5b4; background: #033a16; }
+  .glimpse-tty-markdown .hljs { color: #c9d1d9; background: #161b22; }
+  .glimpse-tty-markdown .hljs-keyword,
+  .glimpse-tty-markdown .hljs-meta,
+  .glimpse-tty-markdown .hljs-built_in { color: #ff7b72; }
+  .glimpse-tty-markdown .hljs-string,
+  .glimpse-tty-markdown .hljs-attr { color: #a5d6ff; }
+  .glimpse-tty-markdown .hljs-comment,
+  .glimpse-tty-markdown .hljs-quote { color: #8b949e; }
+  .glimpse-tty-markdown .hljs-number,
+  .glimpse-tty-markdown .hljs-literal { color: #79c0ff; }
+  .glimpse-tty-markdown .hljs-function,
+  .glimpse-tty-markdown .hljs-title,
+  .glimpse-tty-markdown .hljs-section { color: #d2a8ff; }
+  .glimpse-tty-markdown .hljs-variable,
+  .glimpse-tty-markdown .hljs-params { color: #c9d1d9; }
+  .glimpse-tty-markdown .hljs-tag,
+  .glimpse-tty-markdown .hljs-name,
+  .glimpse-tty-markdown .hljs-selector-tag { color: #7ee787; }
+  .glimpse-tty-markdown .hljs-deletion { color: #ffdcd7; background: #67060c; }
+  .glimpse-tty-markdown .hljs-addition { color: #aff5b4; background: #033a16; }
 }
 `;
 
@@ -314,14 +314,14 @@ function buildToc(article: HTMLElement): void {
   if (headings.length < TOC_MIN_HEADINGS) return;
 
   const nav = document.createElement('nav');
-  nav.className = 'awrit-toc';
+  nav.className = 'glimpse-tty-toc';
   nav.setAttribute('aria-label', 'On this page');
 
   const ul = document.createElement('ul');
   const linkById = new Map<string, HTMLAnchorElement>();
   for (const h of headings) {
     const li = document.createElement('li');
-    li.className = `awrit-toc-${h.tagName.toLowerCase()}`;
+    li.className = `glimpse-tty-toc-${h.tagName.toLowerCase()}`;
     const a = document.createElement('a');
     a.href = `#${h.id}`;
     a.textContent = (h.textContent ?? '').trim();
@@ -437,16 +437,16 @@ async function renderMermaidBlocks(blocks: HTMLElement[]): Promise<void> {
     const pre = code.parentElement;
     if (!(pre instanceof HTMLPreElement)) continue;
     const definition = code.textContent ?? '';
-    const id = `awrit-mermaid-${Date.now()}-${i}`;
+    const id = `glimpse-tty-mermaid-${Date.now()}-${i}`;
     try {
       const svg = await renderMermaid(id, definition);
       const wrapper = document.createElement('div');
-      wrapper.className = 'awrit-mermaid';
+      wrapper.className = 'glimpse-tty-mermaid';
       wrapper.innerHTML = svg;
       pre.replaceWith(wrapper);
     } catch (err) {
       const errorBox = document.createElement('div');
-      errorBox.className = 'awrit-mermaid-error';
+      errorBox.className = 'glimpse-tty-mermaid-error';
       errorBox.style.cssText = 'color: #cf222e; padding: 1em; border: 1px solid #cf222e; border-radius: 6px;';
       errorBox.textContent = `Mermaid render error: ${err instanceof Error ? err.message : String(err)}`;
       pre.replaceWith(errorBox);
@@ -464,7 +464,7 @@ async function render(): Promise<void> {
 
   document.body.innerHTML = '';
   const article = document.createElement('article');
-  article.className = 'awrit-markdown';
+  article.className = 'glimpse-tty-markdown';
   article.innerHTML = safe;
   document.body.appendChild(article);
 

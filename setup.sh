@@ -110,7 +110,7 @@ else
 fi
 
 if [ ! -d "$BASE_DIR/node_modules" ]; then
-  (cd awrit-native-rs && "$BUN_EXE" scripts/download-binary.js)
+  (cd glimpse-tty-native-rs && "$BUN_EXE" scripts/download-binary.js)
   "$BUN_EXE" install
 
   # Patch Electron.app to not display in the Dock, because it seems odd

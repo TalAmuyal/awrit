@@ -1,7 +1,7 @@
 <!-- omit in toc -->
-# Contributing to Awrit
+# Contributing to Glimpse TTY
 
-Thanks for taking time to contribute! `awrit` is a project I work on in my spare time, so I appreciate any help I get.
+Thanks for taking time to contribute! Glimpse TTY is an active fork and continuation of [awrit](https://github.com/chase/awrit) by Chase Colman -- we're grateful for the foundation the original project built.
 
 > [!NOTE]
 > If you like the project, but don't have time to contribute bug reports or PRs, then there are a few things you can do to support it:
@@ -28,7 +28,7 @@ Thanks for taking time to contribute! `awrit` is a project I work on in my spare
 ## Code of Conduct
 
 This project and everyone participating in it is governed by the
-[Awrit Code of Conduct](https://github.com/chase/awrit/blob/electron/CODE_OF_CONDUCT.md).
+[Glimpse TTY Code of Conduct](https://github.com/TalAmuyal/glimpse-tty/blob/master/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Violations of the code of conduct may lead to issues and discussions being closed.
 
 ## Reporting Bugs
@@ -40,9 +40,9 @@ A good bug report shouldn't require any follow up questions for more information
 
 Before you file a bug report:
 
-- Make sure that you are using the latest version, run `git pull` in the root of the repository and run `awrit` again to see if it still occurs.
+- Make sure that you are using the latest version, run `git pull` in the root of the repository and run `glimpse-tty` again to see if it still occurs.
 - Determine if the bug is caused by using an unsupported terminal or version. Only recent versions of Kitty and Ghostty are supported.
-- Check if other users have experienced (and perhaps solved) the same bug in [Issues](https://github.com/chase/awrit/issues?q=label%3Abug).
+- Check if other users have experienced (and perhaps solved) the same bug in [Issues](https://github.com/TalAmuyal/glimpse-tty/issues?q=label%3Abug).
 - Use GitHub CoPilot to see if there's a general solution that you can contribute.
 - Finally, collect information about the bug:
   - OS, Platform and Version (Windows, Linux, macOS, x86, ARM)
@@ -54,7 +54,7 @@ Before you file a bug report:
 
 We use GitHub issues to track bugs and errors. If you run into an issue with the project:
 
-- Open an [Issue](https://github.com/chase/awrit/issues/new). (Since we can't be sure at this point whether it is a bug or not, we ask you not to talk about a bug yet and not to label the issue.)
+- Open an [Issue](https://github.com/TalAmuyal/glimpse-tty/issues/new). (Since we can't be sure at this point whether it is a bug or not, we ask you not to talk about a bug yet and not to label the issue.)
 - Explain the behavior you would expect and the actual behavior.
 - Please provide as much context as possible and describe the *reproduction steps* that someone else can follow to recreate the issue on their own. For good bug reports you should isolate the problem and create a reduced test case.
 - Provide the information you collected in the previous section.
@@ -67,12 +67,12 @@ Once it's filed:
 
 ## I Have a Question
 
-Before you ask a question, it is best to search for existing [Issues](https://github.com/chase/awrit/issues) and [Discussions](https://github.com/chase/awrit/discussions) that might help you.
+Before you ask a question, it is best to search for existing [Issues](https://github.com/TalAmuyal/glimpse-tty/issues) and [Discussions](https://github.com/TalAmuyal/glimpse-tty/discussions) that might help you.
 In case you have found a suitable issue or discussion and still need clarification, you can write your question there. It is also advisable to search the internet for answers first.
 
 If you then still feel the need to ask a question and need clarification, we recommend the following:
 
-- Create a [Q&A Discussion](https://github.com/chase/awrit/discussions/new?category=q-a).
+- Create a [Q&A Discussion](https://github.com/TalAmuyal/glimpse-tty/discussions/new?category=q-a).
 - Provide any details that lead to your question, depending on what seems relevant.
 
 ## I Want To Contribute
@@ -83,26 +83,26 @@ If you then still feel the need to ask a question and need clarification, we rec
 
 ### Suggesting Features and Enhancements
 
-This section guides you through submitting an enhancement suggestion for Awrit, **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
+This section guides you through submitting an enhancement suggestion for Glimpse TTY, **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
 
 <!-- omit in toc -->
 #### Before Submitting an Enhancement
 
 - Make sure that you are using the latest version.
 - Use GitHub CoPilot to see if the feature already exists.
-- Perform a [search](https://github.com/chase/awrit/issues) to see if the enhancement has already been suggested. If it has, add a 👍 reaction to the issue so the team can better prioritize.
+- Perform a [search](https://github.com/TalAmuyal/glimpse-tty/issues) to see if the enhancement has already been suggested. If it has, add a 👍 reaction to the issue so the team can better prioritize.
 - Find out whether your idea fits with the scope and aims of the project. It's up to you to make a strong case to convince the project's developers of the merits of this feature. Keep in mind that we want features that will be useful to the majority of our users and not just a small subset. If you're just targeting a minority of users, consider forking the project and/or contributing a pull request.
 
 <!-- omit in toc -->
 #### How Do I Submit a Good Enhancement Suggestion?
 
-Enhancement suggestions are tracked as [Issues](https://github.com/chase/awrit/issues).
+Enhancement suggestions are tracked as [Issues](https://github.com/TalAmuyal/glimpse-tty/issues).
 
 - Use a **clear and descriptive title** for the issue to identify the suggestion.
 - Provide a **step-by-step description of the suggested enhancement** in as many details as possible.
 - **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point you can also tell which alternatives do not work for you.
 - You may want to **include screenshots or screen recordings** which help you demonstrate the steps or point out the part which the suggestion is related to. You can use [LICEcap](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and the built-in [screen recorder in GNOME](https://help.gnome.org/users/gnome-help/stable/screen-shot-record.html.en) or [SimpleScreenRecorder](https://github.com/MaartenBaert/ssr) on Linux.
-- **Explain why this enhancement would be useful** to most Awrit users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
+- **Explain why this enhancement would be useful** to most Glimpse TTY users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
 
 ### Your First Code Contribution
 
@@ -116,19 +116,19 @@ Common tasks, from the repo root:
 
 | Command | What it does |
 |---|---|
-| `mise start [url]` | Run awrit from this checkout (forwards arguments to `./awrit`) |
+| `mise start [url]` | Run glimpse-tty from this checkout (forwards arguments to `./glimpse-tty`) |
 | `mise test` | Run the Bun unit tests |
 | `mise check` | Typecheck + Biome lint + cargo clippy |
 | `mise format` | Format TypeScript/JSON with Biome |
 | `mise format:rust` | Format Rust with `cargo fmt` |
-| `mise build:native` | Rebuild the napi-rs native addon (only needed when editing `awrit-native-rs`) |
+| `mise build:native` | Rebuild the napi-rs native addon (only needed when editing `glimpse-tty-native-rs`) |
 | `mise clean` | Remove build artifacts and dependency trees |
 
 Run `mise tasks` to list every task.
 
 On Linux, Electron needs system libraries such as `libnss3`, `libgtk-3-0`, and `libasound2`. Install them through your distro's package manager — mise doesn't handle system packages.
 
-If you prefer not to use mise, the shims still work: install [Bun](https://bun.sh/) (and optionally [Rust](https://www.rust-lang.org/tools/install) for native-addon changes), then run `./awrit` — it bootstraps itself via `setup.sh`.
+If you prefer not to use mise, the shims still work: install [Bun](https://bun.sh/) (and optionally [Rust](https://www.rust-lang.org/tools/install) for native-addon changes), then run `./glimpse-tty` — it bootstraps itself via `setup.sh`.
 
 Then:
 

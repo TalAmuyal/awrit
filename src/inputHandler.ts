@@ -1,4 +1,4 @@
-import type { KeyEvent as KeyEventOriginal, TermEvent } from 'awrit-native-rs';
+import type { KeyEvent as KeyEventOriginal, TermEvent } from 'glimpse-tty-native-rs';
 import { handleEvent as handleKeyBinding } from './keybindings';
 import { focusedView } from './windows';
 
@@ -6,12 +6,12 @@ const WHEEL_DELTA = 100;
 // Each terminal scroll arrives as one discrete event. Sending it as a single
 // `deltaY: 100, hasPreciseScrollingDeltas: false` wheel makes Chromium treat
 // it like a wheel click — even with `--enable-smooth-scrolling`, the captured
-// animation often looks stepped through awrit's offscreen→Kitty path.
+// animation often looks stepped through glimpse-tty's offscreen→Kitty path.
 //
 // Instead we fan it out into a sequence of small `hasPreciseScrollingDeltas:
 // true` events spread over SCROLL_DURATION_MS, mimicking trackpad input.
 // Chromium handles those with continuous high-resolution scrolling, which
-// produces a steadier stream of paint events for awrit to forward.
+// produces a steadier stream of paint events for glimpse-tty to forward.
 const SCROLL_STEPS = 10;
 const SCROLL_DURATION_MS = 120;
 

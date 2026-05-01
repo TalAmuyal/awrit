@@ -7,7 +7,7 @@ import { registerPaintedContent, registerPaintedContentFallback } from './paint'
 import { sessionPromise } from './session';
 import { bundledExtensionsPromise, extensionsPromise, installedExtensionsPromise } from './extensions';
 import { createDirectFrame } from './tty/kittyGraphics';
-import { getWindowSize } from 'awrit-native-rs';
+import { getWindowSize } from 'glimpse-tty-native-rs';
 import { options } from './args';
 import { console_ } from './console';
 import {

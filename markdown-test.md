@@ -1,5 +1,5 @@
 ---
-title: awrit Markdown Renderer test
+title: Glimpse TTY Markdown Renderer test
 author: nobody
 draft: true
 tags:
@@ -7,7 +7,7 @@ tags:
   - fixture
 ---
 
-# awrit Markdown Renderer Test
+# Glimpse TTY Markdown Renderer Test
 
 This file exercises every feature of the bundled markdown renderer. If everything below renders correctly, the extension is healthy.
 
@@ -30,7 +30,7 @@ Click any of these to jump to the section. They use auto-generated heading IDs.
 
 ## Inline formatting
 
-Plain text with **bold**, *italic*, ***bold italic***, ~~strikethrough~~, and `inline code`. An autolink: <https://github.com/chase/awrit>. An external link with the off-host indicator: [Kitty graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/). A relative link (no indicator expected): [README](./README.md).
+Plain text with **bold**, *italic*, ***bold italic***, ~~strikethrough~~, and `inline code`. An autolink: <https://github.com/TalAmuyal/glimpse-tty>. An external link with the off-host indicator: [Kitty graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/). A relative link (no indicator expected): [README](./README.md).
 
 Footnotes work: this sentence has a reference[^1], and so does this one[^longer-name]. Click a number to jump to the definition; click the back-arrow to return.
 
@@ -127,7 +127,7 @@ JSON:
 ```json
 {
   "manifest_version": 3,
-  "name": "awrit Markdown Renderer",
+  "name": "Glimpse TTY Markdown Renderer",
   "permissions": ["storage"],
   "host_permissions": ["<all_urls>"]
 }
@@ -149,7 +149,7 @@ deps:
 CSS:
 
 ```css
-.awrit-markdown {
+.glimpse-tty-markdown {
   font-family: system-ui, sans-serif;
   line-height: 1.6;
 }
@@ -237,9 +237,9 @@ A sequence diagram:
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant A as awrit
+    participant A as glimpse-tty
     participant E as Extension
-    U->>A: ./awrit "file://README.md"
+    U->>A: ./glimpse-tty "file://README.md"
     A->>A: Load .md as plaintext
     A->>E: Match content_scripts (.md path)
     E->>E: marked → DOMPurify → hljs

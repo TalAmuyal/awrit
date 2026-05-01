@@ -1,4 +1,4 @@
-import { getWindowSize, ShmGraphicBuffer } from 'awrit-native-rs';
+import { getWindowSize, ShmGraphicBuffer } from 'glimpse-tty-native-rs';
 import { app } from 'electron';
 import type {
   BrowserWindow,

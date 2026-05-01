@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "awrit Markdown Renderer",
+  "name": "Glimpse TTY Markdown Renderer",
   "version": "1.0.0",
-  "description": "Renders .md and .markdown URLs as HTML in awrit.",
+  "description": "Renders .md and .markdown URLs as HTML in Glimpse TTY.",
   "content_scripts": [
     {
       "matches": [

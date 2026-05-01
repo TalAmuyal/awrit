@@ -10,8 +10,8 @@ sources = ["setup.sh", "package.json", "bun.lock", "src/runner/package.json"]
 outputs = ["node_modules/electron/package.json"]
 
 [tasks.start]
-description = "Launch awrit from this checkout. Forwards all arguments to ./awrit."
-run = "./awrit"
+description = "Launch glimpse-tty from this checkout. Forwards all arguments to ./glimpse-tty."
+run = "./glimpse-tty"
 depends = ["setup"]
 
 [tasks.test]
@@ -51,8 +51,8 @@ depends = ["setup"]
 
 [tasks."lint:rust"]
 description = "cargo clippy on the native addon and bgra-to-rgba (not vendored crossterm)."
-run = "cargo clippy -p awrit-native-rs -p bgra-to-rgba --all-targets --all-features -- -D warnings"
-dir = "{{config_root}}/awrit-native-rs"
+run = "cargo clippy -p glimpse-tty-native-rs -p bgra-to-rgba --all-targets --all-features -- -D warnings"
+dir = "{{config_root}}/glimpse-tty-native-rs"
 
 [tasks.format]
 description = "Biome format across the repo."
@@ -61,8 +61,8 @@ depends = ["setup"]
 
 [tasks."format:rust"]
 description = "cargo fmt on the native addon and bgra-to-rgba (not vendored crossterm)."
-run = "cargo fmt -p awrit-native-rs -p bgra-to-rgba"
-dir = "{{config_root}}/awrit-native-rs"
+run = "cargo fmt -p glimpse-tty-native-rs -p bgra-to-rgba"
+dir = "{{config_root}}/glimpse-tty-native-rs"
 
 [tasks.check]
 description = "Aggregate: typecheck + lint + lint:rust. Static pre-commit sanity."
@@ -71,32 +71,32 @@ depends = ["typecheck", "lint", "lint:rust"]
 [tasks."build:native"]
 description = "Build the napi-rs native addon for the host platform (release)."
 run = "bun run make"
-dir = "{{config_root}}/awrit-native-rs"
+dir = "{{config_root}}/glimpse-tty-native-rs"
 depends = ["setup"]
 
 [tasks."build:native:debug"]
 description = "Build the napi-rs native addon for the host platform (debug)."
 run = "bun run make:debug"
-dir = "{{config_root}}/awrit-native-rs"
+dir = "{{config_root}}/glimpse-tty-native-rs"
 depends = ["setup"]
 
 [tasks.clean]
-description = "Remove dependency and build artifacts (keeps the ./.bun sandbox so ./awrit still works)."
+description = "Remove dependency and build artifacts (keeps the ./.bun sandbox so ./glimpse-tty still works)."
 run = [
   "rm -rf node_modules",
-  "rm -rf awrit-native-rs/target",
-  "rm -f awrit-native-rs/*.node",
-  "rm -f awrit_error.txt",
+  "rm -rf glimpse-tty-native-rs/target",
+  "rm -f glimpse-tty-native-rs/*.node",
+  "rm -f glimpse-tty_error.txt",
 ]
 
 [tasks."clean:all"]
-description = "Full clean including the ./.bun sandbox. Next ./awrit or mise setup will re-download."
+description = "Full clean including the ./.bun sandbox. Next ./glimpse-tty or mise setup will re-download."
 run = [
   "rm -rf node_modules",
   "rm -rf .bun",
-  "rm -rf awrit-native-rs/target",
-  "rm -f awrit-native-rs/*.node",
-  "rm -f awrit_error.txt",
+  "rm -rf glimpse-tty-native-rs/target",
+  "rm -f glimpse-tty-native-rs/*.node",
+  "rm -f glimpse-tty_error.txt",
 ]
 
 [tasks."bump:crossterm"]

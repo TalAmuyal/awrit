@@ -1,7 +1,7 @@
 import { GFX } from './escapeCodes';
 import type { Size } from './graphics';
 import { options } from '../args';
-import type { ShmGraphicBuffer } from 'awrit-native-rs';
+import type { ShmGraphicBuffer } from 'glimpse-tty-native-rs';
 import { placeCursor } from './output';
 const { stdout } = process;
 

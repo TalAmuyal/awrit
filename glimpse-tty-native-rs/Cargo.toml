@@ -1,5 +1,5 @@
 [package]
-name = "awrit-native-rs"
+name = "glimpse-tty-native-rs"
 version = "2.0.3"
 edition = "2021"
 

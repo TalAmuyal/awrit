@@ -5,7 +5,7 @@ import {
   type TermEvent,
   termDisableFeatures,
   getWindowSize,
-} from 'awrit-native-rs';
+} from 'glimpse-tty-native-rs';
 import * as out from './tty/output';
 import { handleInput } from './inputHandler';
 import { createWindow } from './windows';
@@ -29,7 +29,7 @@ interface UserConfig {
   };
 }
 
-let homepage = 'https://github.com/TalAmuyal/awrit';
+let homepage = 'https://github.com/TalAmuyal/glimpse-tty';
 let userExtensions: string[] = [];
 let deviceScaleFactor: number | null = null;
 
@@ -69,12 +69,18 @@ function loadConfig(config: UserConfig) {
 }
 
 const xdgConfigHome = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
-const CONFIG_PATH_RESOLVED = path.join(xdgConfigHome, 'awrit', 'config.js');
+const CONFIG_PATH_RESOLVED = path.join(xdgConfigHome, 'glimpse-tty', 'config.js');
 
 if (!fs.existsSync(CONFIG_PATH_RESOLVED)) {
-  const templatePath = path.resolve(__dirname, '../config.example.js');
-  fs.mkdirSync(path.dirname(CONFIG_PATH_RESOLVED), { recursive: true });
-  fs.copyFileSync(templatePath, CONFIG_PATH_RESOLVED);
+  const oldConfigPath = path.join(xdgConfigHome, 'awrit', 'config.js');
+  if (fs.existsSync(oldConfigPath)) {
+    fs.mkdirSync(path.dirname(CONFIG_PATH_RESOLVED), { recursive: true });
+    fs.copyFileSync(oldConfigPath, CONFIG_PATH_RESOLVED);
+  } else {
+    const templatePath = path.resolve(__dirname, '../config.example.js');
+    fs.mkdirSync(path.dirname(CONFIG_PATH_RESOLVED), { recursive: true });
+    fs.copyFileSync(templatePath, CONFIG_PATH_RESOLVED);
+  }
 }
 
 loadConfig(require(CONFIG_PATH_RESOLVED));

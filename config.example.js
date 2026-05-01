@@ -1,7 +1,7 @@
 /** Homepage
  * The page that's displayed by default when no URL is provided
  **/
-const homepage = 'https://github.com/TalAmuyal/awrit';
+const homepage = 'https://github.com/TalAmuyal/glimpse-tty';
 
 /** Extensions
  * Paths to unpacked Chrome extensions. `~/` is expanded; relative paths resolve against this file's directory.
@@ -102,7 +102,7 @@ function refresh({ view }) {
  * the cost of visibly blurrier text — Kitty upscales the smaller bitmap back
  * to fill the original cell area. Recommended range: `0 < N <= 1`.
  * Overridden by the `--device-scale-factor=N` CLI flag when provided.
- * Read once at startup; changes require an awrit restart.
+ * Read once at startup; changes require a glimpse-tty restart.
  *
  * @type {number | null}
  */

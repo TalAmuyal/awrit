@@ -27,7 +27,7 @@
   "exclude": [
     "node_modules",
     "dist",
-    "awrit-native-rs",
+    "glimpse-tty-native-rs",
     "default-extensions",
     "default-extensions/**/*",
     "src/runner",

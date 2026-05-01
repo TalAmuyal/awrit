@@ -1,6 +1,6 @@
 # Scroll smoothness investigation — lessons learned
 
-This document captures what we learned during a long investigation into why scrolling in awrit feels janky, and why the obvious "skip the GPU→CPU readback" fix turned out not to help. It is intended for whoever picks this up next so they don't repeat our dead ends.
+This document captures what we learned during a long investigation into why scrolling in glimpse-tty feels janky, and why the obvious "skip the GPU→CPU readback" fix turned out not to help. It is intended for whoever picks this up next so they don't repeat our dead ends.
 
 ## Where we landed
 
@@ -97,7 +97,7 @@ The actual bottleneck was the Rust code, not Electron. Additionally, vsync stall
 
 **1. `--disable-gpu-vsync` Chromium switch.** Eliminated vsync-aligned stalls. `tb_p50` dropped from 28.6 to 18.8 ms (the vsync fence was inflating toBitmap's apparent cost). `dt_spikes_pct` dropped from 26.2% to 4.6%. This was explicitly listed as "never tested" in the first investigation's recommendations.
 
-**2. shm warm-buffer optimization.** Replaced per-frame `shm_open -> ftruncate -> mmap -> BGRA-to-RGBA(cold pages) -> munmap` with persistent warm anonymous mmap for BGRA-to-RGBA output, then `shm_open -> ftruncate -> mmap(MAP_SHARED) -> memcpy(warm->shm) -> munmap`. Eliminated ~2,500 zero-fill page faults per frame. `rw_p50` dropped from 14.1 to 3.4 ms (4.1x improvement). Implementation: `WarmBuffer` in `awrit-native-rs/src/lib.rs`.
+**2. shm warm-buffer optimization.** Replaced per-frame `shm_open -> ftruncate -> mmap -> BGRA-to-RGBA(cold pages) -> munmap` with persistent warm anonymous mmap for BGRA-to-RGBA output, then `shm_open -> ftruncate -> mmap(MAP_SHARED) -> memcpy(warm->shm) -> munmap`. Eliminated ~2,500 zero-fill page faults per frame. `rw_p50` dropped from 14.1 to 3.4 ms (4.1x improvement). Implementation: `WarmBuffer` in `glimpse-tty-native-rs/src/lib.rs`.
 
 **3. Direct transmit+place Kitty protocol.** Replaced the animation protocol (`paintInitialFrame` + `loadFrame` + `compositeFrame`) with a single `a=T` (transmit+place) per frame. Includes `c=cols, r=rows` for cell-area scaling. Simpler code, one protocol command per frame instead of two, zero performance regression. Enables the `deviceScaleFactor` option for quality/perf trade-off. Implementation: `createDirectFrame()` in `src/tty/kittyGraphics.ts`.
 
@@ -156,10 +156,10 @@ New recommendations:
 
 ## Footguns we hit (and want others not to)
 
-- **`napi-rs`'s `make:debug` script does not run `fix-types.js`.** This silently breaks the discriminated-union `TermEvent` type, and existing JS code that narrows on `eventType === 'mouse'` then accesses `evt.mouseEvent` starts failing typecheck. We added `fix-types.js` to the `make:debug` script in `awrit-native-rs/package.json`. If you re-flatten that for any reason, expect this to bite again.
+- **`napi-rs`'s `make:debug` script does not run `fix-types.js`.** This silently breaks the discriminated-union `TermEvent` type, and existing JS code that narrows on `eventType === 'mouse'` then accesses `evt.mouseEvent` starts failing typecheck. We added `fix-types.js` to the `make:debug` script in `glimpse-tty-native-rs/package.json`. If you re-flatten that for any reason, expect this to bite again.
 - **macOS BSD `sed -i ''`** does not expand `\n` in replacement strings. The existing `setup.sh` plist patch for `LSUIElement` would have inserted literal `\n` text into the plist if it ran on a re-installed Electron. We worked around with Python during the upgrade. If you hit dock-icon issues after re-install, this is why.
-- **`args.ts` prefixes bare paths with `https://`.** Running `./awrit "$(pwd)/README.md"` (note: no `file://`) makes `args.ts` see `/Users/.../README.md` and prefix it: `https:///Users/.../README.md`. Chromium then normalizes that to `https://users/.../README.md` (collapses triple-slash, lowercases the host) and tries DNS resolution → `ERR_NAME_NOT_RESOLVED`. Always include the `file://` prefix for local files. Future improvement: detect absolute paths in `args.ts` and auto-prepend `file://`.
-- **The dual-lockfile setup** (`awrit-native-rs/yarn.lock` for CI, project root `bun.lock` for local) makes dev-dep bumps in the addon brittle. Bumping `@napi-rs/cli` requires both lockfiles to stay in sync, and we don't have yarn locally. Consider consolidating.
+- **`args.ts` prefixes bare paths with `https://`.** Running `./glimpse-tty "$(pwd)/README.md"` (note: no `file://`) makes `args.ts` see `/Users/.../README.md` and prefix it: `https:///Users/.../README.md`. Chromium then normalizes that to `https://users/.../README.md` (collapses triple-slash, lowercases the host) and tries DNS resolution → `ERR_NAME_NOT_RESOLVED`. Always include the `file://` prefix for local files. Future improvement: detect absolute paths in `args.ts` and auto-prepend `file://`.
+- **The dual-lockfile setup** (`glimpse-tty-native-rs/yarn.lock` for CI, project root `bun.lock` for local) makes dev-dep bumps in the addon brittle. Bumping `@napi-rs/cli` requires both lockfiles to stay in sync, and we don't have yarn locally. Consider consolidating.
 - **`process.argv.slice(2)` in `args.ts`** receives Electron's pre-fixed args (`--high-dpi-support=1`, plus any `--force-device-scale-factor=N`, plus user args). The parser silently ignores unknown switches, which is fine, but be aware when adding arg-handling logic.
 - **macOS POSIX shm does not support `write()`.** The `write()` syscall on a shm fd returns `ENXIO` on macOS. The only write path is `mmap(MAP_SHARED)` + `memcpy`. This is not documented in the man page; it surfaces as an unexpected errno.
 - **Per-frame `mmap` of fresh pages triggers ~2,500 zero-fill page faults** on a ~28 MB frame. The kernel must zero every page before handing it to userspace. This dominated the Rust-side cost at 14.1 ms per frame before the warm-buffer optimization. If you add any new per-frame allocation of large buffers, watch for the same pattern.
@@ -175,23 +175,23 @@ For someone returning to this:
 - `src/windows.ts` — `webPreferences.offscreen` is the toggle. Currently `true`; flip to `{ useSharedTexture: true }` to re-enable the shared-texture path. `scaleContentSize()` applies `deviceScaleFactor`. `cellArea` is plumbed into paint registration for `c=/r=` scaling.
 - `src/inputHandler.ts` — scroll fan-out lives at lines around the `scrollUp`/`scrollDown` branch. `SCROLL_STEPS=10`, `SCROLL_DURATION_MS=120` are the tunables.
 - `src/index.ts` — the Chromium switch list (smooth scrolling, GPU rasterization, `--disable-gpu-vsync`, etc.). `deviceScaleFactor` config loading + `resolveDeviceScaleFactor` (CLI flag > config > null).
-- `awrit-native-rs/src/lib.rs` — `WarmBuffer` for persistent anonymous mmap. `copy_to_shm_fd()` for transient shm write via `mmap(MAP_SHARED) + memcpy`. Write flow: `bgra_to_rgba(src, warm_buf) -> shm_open -> ftruncate -> mmap(MAP_SHARED) -> memcpy(warm->shm) -> munmap`. `ShmGraphicBuffer` with name rotation, `truncate_tolerant`, IOSurface FFI module (`iosurface_ffi`), `write_iosurface` (currently uncalled from JS but compiled and ready).
-- `awrit-native-rs/build.rs` — links `IOSurface` and `CoreFoundation` frameworks on macOS. Keep these even though `write_iosurface` is dormant; removing requires also removing the FFI module.
+- `glimpse-tty-native-rs/src/lib.rs` — `WarmBuffer` for persistent anonymous mmap. `copy_to_shm_fd()` for transient shm write via `mmap(MAP_SHARED) + memcpy`. Write flow: `bgra_to_rgba(src, warm_buf) -> shm_open -> ftruncate -> mmap(MAP_SHARED) -> memcpy(warm->shm) -> munmap`. `ShmGraphicBuffer` with name rotation, `truncate_tolerant`, IOSurface FFI module (`iosurface_ffi`), `write_iosurface` (currently uncalled from JS but compiled and ready).
+- `glimpse-tty-native-rs/build.rs` — links `IOSurface` and `CoreFoundation` frameworks on macOS. Keep these even though `write_iosurface` is dormant; removing requires also removing the FFI module.
 
 ## How to resume
 
 Repro setup:
 
 ```sh
-./awrit -p "file://$(pwd)/markdown-test.md"
+./glimpse-tty -p "file://$(pwd)/markdown-test.md"
 ```
 
 `markdown-test.md` at the repo root is a long-enough fixture to scroll meaningfully. The `-p` flag enables paint-event logging.
 
-Output goes to `awrit_error.txt` at the repo root (the `./awrit` shim redirects stderr there). Read with:
+Output goes to `glimpse-tty_error.txt` at the repo root (the `./glimpse-tty` shim redirects stderr there). Read with:
 
 ```sh
-grep "^paint:content" awrit_error.txt | tail -200
+grep "^paint:content" glimpse-tty_error.txt | tail -200
 ```
 
 Each line: `paint:<tag> src=<tex|bmp|fail> fmt=<bgra|rgba|n/a> dt=<ms> rd=<ms> rw=<ms> sw=<ms> sz=WxH ni=WxH cs=WxH dl=WxH@x,y`. Where:
@@ -206,13 +206,13 @@ Each line: `paint:<tag> src=<tex|bmp|fail> fmt=<bgra|rgba|n/a> dt=<ms> rd=<ms> r
 
 Summary statistics (p50, p95, p99, spikes) are printed at exit for `dt`, `rd`, `rw`, `sw`, and `tb` (= `rd` + `rw`).
 
-To rebuild the Rust addon after touching `awrit-native-rs/src/`:
+To rebuild the Rust addon after touching `glimpse-tty-native-rs/src/`:
 
 ```sh
 mise build:native:debug   # runs napi build + fix-types.js
-cp awrit-native-rs/awrit-native-rs.darwin-arm64.node \
-   node_modules/awrit-native-rs/awrit-native-rs.darwin-arm64.node
-cp awrit-native-rs/index.d.ts node_modules/awrit-native-rs/index.d.ts
+cp glimpse-tty-native-rs/glimpse-tty-native-rs.darwin-arm64.node \
+   node_modules/glimpse-tty-native-rs/glimpse-tty-native-rs.darwin-arm64.node
+cp glimpse-tty-native-rs/index.d.ts node_modules/glimpse-tty-native-rs/index.d.ts
 ```
 
 (The copy step is needed because `bun install`'s local-path linking isn't a true symlink in this setup.)

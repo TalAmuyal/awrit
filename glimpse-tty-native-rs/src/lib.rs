@@ -160,7 +160,7 @@ impl ShmGraphicBuffer {
     } else {
       &hex
     };
-    let name_prefix = format!("/aw_{}", suffix);
+    let name_prefix = format!("/gt_{}", suffix);
     let initial_name = format!("{}_0", name_prefix);
 
     Self {
