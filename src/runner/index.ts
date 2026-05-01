@@ -14,7 +14,7 @@ const BOLD_WHITE = '\x1b[1m';
 
 export function showHelp() {
   stdout.write(RESET);
-  stdout.write(`Usage: ${BOLD_GREEN}awrit${RESET} ${DIM_WHITE}[options] [url]${RESET}\n\n`);
+  stdout.write(`Usage: ${BOLD_GREEN}glimpse-tty${RESET} ${DIM_WHITE}[options] [url]${RESET}\n\n`);
   stdout.write('Options:\n');
   for (const [key, value] of Object.entries(possibleOptions)) {
     if ('arg' in value) {
@@ -35,7 +35,7 @@ if (options.help) {
 if (options.version) {
   const version = (await $`git rev-parse --short HEAD`.quiet()).text().trim();
   if (stdout.isTTY) {
-    stdout.write(`${BOLD_GREEN}awrit${RESET} ${version}\n`);
+    stdout.write(`${BOLD_GREEN}glimpse-tty${RESET} ${version}\n`);
   } else {
     stdout.write(version);
   }
@@ -53,7 +53,7 @@ await $`mkdir -p ${root}/dist`.nothrow().quiet();
     target: 'node',
     format: 'cjs',
     sourcemap: 'inline',
-    external: ['electron', 'awrit-native-rs', '*.node'],
+    external: ['electron', 'glimpse-tty-native-rs', '*.node'],
   });
 
   if (!success) {

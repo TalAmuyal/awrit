@@ -6,12 +6,12 @@ Standing list of issues we know about and have intentionally deferred. Each entr
 
 ### Problem
 
-Enabling an option in `config.example.js` (and therefore in the user's `~/.config/awrit/config.js`) requires uncommenting **two non-adjacent lines**:
+Enabling an option in `config.example.js` (and therefore in the user's `~/.config/glimpse-tty/config.js`) requires uncommenting **two non-adjacent lines**:
 
 1. The `const optionName = value;` declaration in the upper half of the file.
 2. The matching shorthand property `optionName,` in the exported `config` object near the bottom.
 
-If the user uncomments only the `const`, the option is bound to a local variable that nothing reads. The exported config object still lacks the property, so at runtime `config.optionName === undefined` and the validation in `loadConfig` (`src/index.ts`) silently does nothing. From the user's perspective: they edited the file, restarted awrit, and observed no effect for any value they tried.
+If the user uncomments only the `const`, the option is bound to a local variable that nothing reads. The exported config object still lacks the property, so at runtime `config.optionName === undefined` and the validation in `loadConfig` (`src/index.ts`) silently does nothing. From the user's perspective: they edited the file, restarted glimpse-tty, and observed no effect for any value they tried.
 
 This currently affects `deviceScaleFactor` (lines 116 and 121 of `config.example.js`) but the same shape applies to `homepage`, `userExtensions`, and `keybindings` — the trap is structural, not specific to one option.
 
@@ -38,9 +38,9 @@ A and C are not exclusive; B and C are not exclusive. A and B are alternatives.
 
 ### Problem
 
-On a Retina display, awrit's content `BrowserWindow` is sized at `terminal_device_pixels / devicePixelRatio` CSS pixels. For a typical full-screen terminal of roughly 274×90 cells (~4104×2520 device px on a 2× display), that yields a CSS-pixel viewport of about **2052 × 1240**.
+On a Retina display, glimpse-tty's content `BrowserWindow` is sized at `terminal_device_pixels / devicePixelRatio` CSS pixels. For a typical full-screen terminal of roughly 274×90 cells (~4104×2520 device px on a 2× display), that yields a CSS-pixel viewport of about **2052 × 1240**.
 
-Most desktop sites lay out for CSS-pixel viewports in the 1280–1500 range. Rendering them at 2052 CSS px wide means the page's content area is wider than the design assumed, and most layouts respond by either expanding white space or showing more content per row at smaller-feeling sizes. Users perceive this as "zoomed out": the same page in awrit displays text and UI noticeably smaller per unit area than the same page in a typical desktop browser at default zoom.
+Most desktop sites lay out for CSS-pixel viewports in the 1280–1500 range. Rendering them at 2052 CSS px wide means the page's content area is wider than the design assumed, and most layouts respond by either expanding white space or showing more content per row at smaller-feeling sizes. Users perceive this as "zoomed out": the same page in glimpse-tty displays text and UI noticeably smaller per unit area than the same page in a typical desktop browser at default zoom.
 
 This is purely a viewport-width issue, not a DPR or layout bug:
 

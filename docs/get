@@ -3,11 +3,11 @@ set -euo pipefail
 
 # Based off of https://bun.sh/install
 
-DOWNLOAD_TO="${DOWNLOAD_TO-"${XDG_DATA_HOME:-$HOME/.local/share}/awrit"}"
+DOWNLOAD_TO="${DOWNLOAD_TO-"${XDG_DATA_HOME:-$HOME/.local/share}/glimpse-tty"}"
 INSTALL_TO="${INSTALL_TO:-}"
-CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/awrit"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/glimpse-tty"
 
-REPO='https://github.com/TalAmuyal/awrit'
+REPO='https://github.com/TalAmuyal/glimpse-tty'
 BRANCH='master'
 ARCHIVE="${BRANCH}.tar.gz"
 ARCHIVE_URI="$REPO/archive/refs/heads/$ARCHIVE"
@@ -71,30 +71,37 @@ if [[ -d "$HOME/awrit" && "$DOWNLOAD_TO" != "$HOME/awrit" ]]; then
     cp "$HOME/awrit/config.js" "$CONFIG_DIR/config.js" || error "Failed to migrate config from ~/awrit/config.js"
     info "Migrated config from $(tildify "$HOME/awrit/config.js") to $(tildify "$CONFIG_DIR/config.js")"
   fi
-  info "Detected old awrit install at $(tildify "$HOME/awrit"). awrit now installs to $(tildify "$DOWNLOAD_TO") and reads its config from $(tildify "$CONFIG_DIR/config.js"). Remove $(tildify "$HOME/awrit") when you are satisfied with the migration."
+  info "Detected old awrit install at $(tildify "$HOME/awrit"). glimpse-tty now installs to $(tildify "$DOWNLOAD_TO") and reads its config from $(tildify "$CONFIG_DIR/config.js"). Remove $(tildify "$HOME/awrit") when you are satisfied with the migration."
+fi
+
+OLD_XDG_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/awrit/config.js"
+if [[ ! -f "$CONFIG_DIR/config.js" && -f "$OLD_XDG_CONFIG" ]]; then
+  mkdir -p "$CONFIG_DIR" || error "Failed to create config directory \"$CONFIG_DIR\""
+  cp "$OLD_XDG_CONFIG" "$CONFIG_DIR/config.js" || error "Failed to migrate config from $(tildify "$OLD_XDG_CONFIG")"
+  info "Migrated config from $(tildify "${OLD_XDG_CONFIG%/*}") to $(tildify "$CONFIG_DIR")"
 fi
 
 if which git >/dev/null; then
   if [[ -d "$DOWNLOAD_TO" ]]; then
-    info_bold "Updating awrit using git"
-    (cd "$DOWNLOAD_TO" && (git pull || error "Failed to pull awrit in \"$DOWNLOAD_TO\""))
+    info_bold "Updating glimpse-tty using git"
+    (cd "$DOWNLOAD_TO" && (git pull || error "Failed to pull glimpse-tty in \"$DOWNLOAD_TO\""))
   else
-    info_bold "Downloading awrit using git"
-    git clone "$REPO" "$DOWNLOAD_TO" || error "Failed to clone awrit to \"$DOWNLOAD_TO\""
+    info_bold "Downloading glimpse-tty using git"
+    git clone "$REPO" "$DOWNLOAD_TO" || error "Failed to clone glimpse-tty to \"$DOWNLOAD_TO\""
   fi
 else
   info_bold ""
-  command -v tar >/dev/null || error 'tar is required to install awrit'
+  command -v tar >/dev/null || error 'tar is required to install glimpse-tty'
 
   archive_file="$DOWNLOAD_TO/$ARCHIVE"
-  mkdir -p "$DOWNLOAD_TO" || error "Failed to create awrit directory \"$DOWNLOAD_TO\""
+  mkdir -p "$DOWNLOAD_TO" || error "Failed to create glimpse-tty directory \"$DOWNLOAD_TO\""
   curl --fail --location --progress-bar --output "$archive_file" "$ARCHIVE_URI" ||
-    error "Failed to download awrit from \"$ARCHIVE_URI\""
+    error "Failed to download glimpse-tty from \"$ARCHIVE_URI\""
 
   tar -xzf "$archive_file" --strip-components=1 -C "$DOWNLOAD_TO" ||
-    error 'Failed to extract awrit'
+    error 'Failed to extract glimpse-tty'
 
-  chmod +x "$DOWNLOAD_TO/setup.sh" "$DOWNLOAD_TO/awrit"
+  chmod +x "$DOWNLOAD_TO/setup.sh" "$DOWNLOAD_TO/glimpse-tty"
   rm "$archive_file"
 fi
 
@@ -113,8 +120,8 @@ fi
 BUN_INSTALL_DIR="$DOWNLOAD_TO/.bun/bin"
 BUN_EXE="$BUN_INSTALL_DIR/bun"
 
-# Install/update awrit-native-rs and Bun dependencies
-(cd "$DOWNLOAD_TO/awrit-native-rs" && "$BUN_EXE" scripts/download-binary.js)
+# Install/update glimpse-tty-native-rs and Bun dependencies
+(cd "$DOWNLOAD_TO/glimpse-tty-native-rs" && "$BUN_EXE" scripts/download-binary.js)
 (cd "$DOWNLOAD_TO" && "$BUN_EXE" install)
 
 echo
@@ -126,12 +133,12 @@ fi
 
 install_symlink() {
   local target_dir="$1"
-  local exe="$target_dir/awrit"
+  local exe="$target_dir/glimpse-tty"
   if [[ -L "$exe" && ! -e "$exe" ]]; then
     rm "$exe"
   fi
   if [[ ! -e "$exe" ]]; then
-    (cd "$target_dir" && ln -s "$DOWNLOAD_TO/awrit")
+    (cd "$target_dir" && ln -s "$DOWNLOAD_TO/glimpse-tty")
   else
     info_bold "$(tildify "$exe") already exists, skipping link install"
     echo
@@ -141,8 +148,8 @@ install_symlink() {
 print_manual_path_instructions() {
   local target_dir="$1"
 
-  info "Could not find a directory in your \$PATH suitable for installing awrit."
-  info "awrit was installed to $(tildify "$target_dir"), but you'll need to add it to your \$PATH yourself."
+  info "Could not find a directory in your \$PATH suitable for installing glimpse-tty."
+  info "glimpse-tty was installed to $(tildify "$target_dir"), but you'll need to add it to your \$PATH yourself."
 
   case $(basename "$SHELL") in
     fish)
@@ -166,11 +173,11 @@ print_manual_path_instructions() {
 
 print_success_message() {
   local target_dir="$1"
-  success "awrit was successfully installed to $Bold_Green$(tildify "$DOWNLOAD_TO")"
+  success "glimpse-tty was successfully installed to $Bold_Green$(tildify "$DOWNLOAD_TO")"
   echo
-  info "Configure awrit by editing $(tildify "$CONFIG_DIR/config.js")"
+  info "Configure glimpse-tty by editing $(tildify "$CONFIG_DIR/config.js")"
   info "To get started, run:"
-  info_bold "  awrit --help"
+  info_bold "  glimpse-tty --help"
 }
 
 if [[ -n "$INSTALL_TO" ]]; then
@@ -191,7 +198,7 @@ candidates=(
 bin_dir=""
 for candidate in "${candidates[@]}"; do
   if [[ -d "$candidate" && ":$PATH:" == *":$candidate:"* ]]; then
-    probe="$candidate/.awrit-install-probe.$$"
+    probe="$candidate/.glimpse-tty-install-probe.$$"
     if (touch "$probe" && rm -f "$probe") 2>/dev/null; then
       bin_dir="$candidate"
       break

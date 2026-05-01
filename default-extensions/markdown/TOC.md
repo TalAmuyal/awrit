@@ -4,7 +4,7 @@ The markdown extension renders a floating right-side TOC for long documents. Thi
 
 ## What it is
 
-A `<nav class="awrit-toc">` injected into `<body>` after the rendered article. It lists every `<h2>` and `<h3>` in the document as anchor links, position-fixed to the right edge of the viewport, and highlights the heading currently in view via `IntersectionObserver`.
+A `<nav class="glimpse-tty-toc">` injected into `<body>` after the rendered article. It lists every `<h2>` and `<h3>` in the document as anchor links, position-fixed to the right edge of the viewport, and highlights the heading currently in view via `IntersectionObserver`.
 
 ## When it appears
 
@@ -18,7 +18,7 @@ If the viewport is narrow at render time, the nav element is not built at all (n
 
 ## Tunable constants
 
-All four live at the top of `content.ts`. Edit, save, then relaunch awrit (the runner rebuilds the extension on every launch).
+All four live at the top of `content.ts`. Edit, save, then relaunch glimpse-tty (the runner rebuilds the extension on every launch).
 
 | Constant | Default | Effect |
 |---|---|---|
@@ -32,7 +32,7 @@ All four live at the top of `content.ts`. Edit, save, then relaunch awrit (the r
 1. Make your edit in `default-extensions/markdown/content.ts`.
 2. Relaunch on the test fixture:
    ```sh
-   ./awrit "file://$(pwd)/markdown-test.md"
+   ./glimpse-tty "file://$(pwd)/markdown-test.md"
    ```
    The runner rebundles the extension on every launch, so there is no separate build step.
 3. Resize the terminal window across the threshold to verify show/hide.
@@ -57,7 +57,7 @@ All four live at the top of `content.ts`. Edit, save, then relaunch awrit (the r
 > **Sidebar overlaps content.** The fixed `width: 220px` and `right: 1rem` live in the CSS in `content.ts`. Adjust those, or raise `TOC_MIN_VIEWPORT_WIDTH` so the sidebar only shows on wider viewports where the article doesn't compete for space.
 
 > [!TIP]
-> **Want headings deeper than `h3`.** Update `TOC_HEADING_SELECTOR` *and* add a `.awrit-toc-h4 { padding-left: 2em }` rule to the CSS so the indentation reflects the new level.
+> **Want headings deeper than `h3`.** Update `TOC_HEADING_SELECTOR` *and* add a `.glimpse-tty-toc-h4 { padding-left: 2em }` rule to the CSS so the indentation reflects the new level.
 
 ## Known limitations
 
@@ -69,4 +69,4 @@ All four live at the top of `content.ts`. Edit, save, then relaunch awrit (the r
 ## Where the code lives
 
 - Render-time gating + DOM build + observer setup: `buildToc()` in `default-extensions/markdown/content.ts`.
-- Visual styles (position, indentation, active highlight, dark mode): the `STYLES` constant in the same file. Search for `.awrit-toc`.
+- Visual styles (position, indentation, active highlight, dark mode): the `STYLES` constant in the same file. Search for `.glimpse-tty-toc`.

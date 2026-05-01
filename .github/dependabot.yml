@@ -8,6 +8,6 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "cargo" 
-    directory: "/awrit-native-rs"
+    directory: "/glimpse-tty-native-rs"
     schedule:
       interval: "weekly"

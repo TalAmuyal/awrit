@@ -1,4 +1,4 @@
-import type { SupportedFeatures } from 'awrit-native-rs';
+import type { SupportedFeatures } from 'glimpse-tty-native-rs';
 
 export const features = {
   current: undefined as SupportedFeatures | undefined,

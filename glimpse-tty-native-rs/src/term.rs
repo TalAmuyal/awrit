@@ -28,7 +28,7 @@ pub struct WindowSize {
 }
 
 #[napi]
-/// Enable features for the terminal that are necessary for Awrit
+/// Enable features for the terminal that are necessary for Glimpse TTY
 pub fn term_enable_features() -> napi::Result<SupportedFeatures> {
   enable_raw_mode().map_err(|e| napi::Error::from_reason(e.to_string()))?;
 
@@ -69,7 +69,7 @@ pub fn term_enable_features() -> napi::Result<SupportedFeatures> {
 }
 
 #[napi]
-/// Disable previously enabled features for the terminal that are necessary for Awrit
+/// Disable previously enabled features for the terminal that are necessary for Glimpse TTY
 pub fn term_disable_features(features: SupportedFeatures) -> napi::Result<()> {
   let mut stdout = std::io::stdout();
 

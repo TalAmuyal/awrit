@@ -4,7 +4,7 @@ import {
   cleanupInput,
   listenForInput,
   EscapeType,
-} from 'awrit-native';
+} from 'glimpse-tty-native-rs';
 import { clearPlacements, paintInitialFrame } from './kittyGraphics';
 import * as out from './output';
 import { randomBytes } from 'node:crypto';

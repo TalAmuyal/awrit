@@ -1,12 +1,12 @@
-# Actual Web Rendering in Terminal
+# Glimpse TTY
 
-Or just `awrit`.
+Chromium rendered in your terminal via the [Kitty terminal graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/).
 
-[awrit-demo.webm](https://github.com/user-attachments/assets/5da3fffc-d781-4b00-9fe3-19ce18d01a7e)
+> **Fork notice** -- Glimpse TTY is an active fork and continuation of [awrit](https://github.com/chase/awrit) by Chase Colman. The original project is no longer actively maintained. We are carrying the baton forward with gratitude for the foundation Chase built.
 
-Yep, actual Chromium being rendered in your favorite terminal that supports the [Kitty terminal graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/).
+[glimpse-tty-demo.webm](https://github.com/user-attachments/assets/5da3fffc-d781-4b00-9fe3-19ce18d01a7e)
 
-**`awrit` works best in [Kitty v0.31 or newer](https://github.com/kovidgoyal/kitty/releases)**
+**`glimpse-tty` works best in [Kitty v0.31 or newer](https://github.com/kovidgoyal/kitty/releases)**
 
 ## Why?
 
@@ -18,21 +18,21 @@ Yep, actual Chromium being rendered in your favorite terminal that supports the 
 ## Install
 
 ``` bash
-curl -fsS https://talamuyal.github.io/awrit/get | bash
+curl -fsS https://talamuyal.github.io/glimpse-tty/get | bash
 ```
 
-By default, this will download to `~/.local/share/awrit` (honors `$XDG_DATA_HOME`) and, without touching your shell config, link `awrit` into the first writable directory on your `$PATH` from this list: `~/.local/bin`, `~/bin`, `/usr/local/bin`, `/opt/homebrew/bin`. If none of those are on your `$PATH`, it installs to `~/.local/bin` and prints instructions for adding it to your shell config.
+By default, this will download to `~/.local/share/glimpse-tty` (honors `$XDG_DATA_HOME`) and, without touching your shell config, link `glimpse-tty` into the first writable directory on your `$PATH` from this list: `~/.local/bin`, `~/bin`, `/usr/local/bin`, `/opt/homebrew/bin`. If none of those are on your `$PATH`, it installs to `~/.local/bin` and prints instructions for adding it to your shell config.
 
-You can configure `awrit` by editing `~/.config/awrit/config.js` (or `$XDG_CONFIG_HOME/awrit/config.js` if set). See [Configuration](#configuration) for more information.
+You can configure `glimpse-tty` by editing `~/.config/glimpse-tty/config.js` (or `$XDG_CONFIG_HOME/glimpse-tty/config.js` if set). See [Configuration](#configuration) for more information.
 
 #### (Optional) Change Download Location or Install Prefix
 
 ``` bash
-curl -fsS https://talamuyal.github.io/awrit/get | DOWNLOAD_TO=~/somewhere-completely-different bash
+curl -fsS https://talamuyal.github.io/glimpse-tty/get | DOWNLOAD_TO=~/somewhere-completely-different bash
 ```
 
 ``` bash
-curl -fsS https://talamuyal.github.io/awrit/get | INSTALL_TO=~/.not-local bash
+curl -fsS https://talamuyal.github.io/glimpse-tty/get | INSTALL_TO=~/.not-local bash
 ```
 
 Setting `INSTALL_TO` skips `$PATH` auto-discovery; the install will use `$INSTALL_TO/bin` directly without modifying your shell config, so make sure that directory is on your `$PATH`.
@@ -40,9 +40,9 @@ Setting `INSTALL_TO` skips `$PATH` auto-discovery; the install will use `$INSTAL
 ## Usage
 
 ```bash
-awrit [url-or-path]
+glimpse-tty [url-or-path]
 
-# if url is not provided, it will go to the awrit homepage (this is temporary, promise)
+# if url is not provided, it will go to the glimpse-tty homepage (this is temporary, promise)
 # the URL protocol can be http:, https:, file:, or data:
 # if the URL protocol is not included, https: is used by default
 # file paths (absolute, relative, or ~/...) are auto-detected and opened as file:// URLs
@@ -51,22 +51,22 @@ awrit [url-or-path]
 Examples:
 
 ```bash
-awrit https://example.com
-awrit example.com            # https:// is added automatically
-awrit /tmp/page.html         # opened as file:///tmp/page.html
-awrit ./README.md            # relative path resolved to absolute file:// URL
-awrit ~/notes/doc.html       # ~ expanded to home directory
+glimpse-tty https://example.com
+glimpse-tty example.com            # https:// is added automatically
+glimpse-tty /tmp/page.html         # opened as file:///tmp/page.html
+glimpse-tty ./README.md            # relative path resolved to absolute file:// URL
+glimpse-tty ~/notes/doc.html       # ~ expanded to home directory
 ```
 
 For more options look at the help:
 
 ```bash
-awrit --help
+glimpse-tty --help
 ```
 
 ## Configuration
 
-`awrit` can be configured through `~/.config/awrit/config.js` (or `$XDG_CONFIG_HOME/awrit/config.js`). It is seeded from `config.example.js` on first install. Changes to it will update the config in any running `awrit`.
+`glimpse-tty` can be configured through `~/.config/glimpse-tty/config.js` (or `$XDG_CONFIG_HOME/glimpse-tty/config.js`). It is seeded from `config.example.js` on first install. Changes to it will update the config in any running `glimpse-tty`.
 
 Currently it supports custom keybindings, the homepage that displays when no URL is provided, and loading local unpacked Chrome extensions via `userExtensions`.
 
@@ -74,10 +74,10 @@ For more details on keybinding syntax, available actions, and the `userExtension
 
 ## Contributing
 
-See [Contributing to Awrit](/CONTRIBUTING.md#contributing-to-awrit).
+See [Contributing to Glimpse TTY](/CONTRIBUTING.md#contributing-to-glimpse-tty).
 
 ## Development
 
-Contributors are encouraged to install [mise](https://mise.jdx.dev) — it pins the Bun, Node, and Rust versions this repo expects and exposes tasks like `mise start`, `mise test`, and `mise check`. See [Your First Code Contribution](/CONTRIBUTING.md#your-first-code-contribution) for the full workflow. If you prefer not to use mise, `./awrit` still bootstraps itself.
+Contributors are encouraged to install [mise](https://mise.jdx.dev) — it pins the Bun, Node, and Rust versions this repo expects and exposes tasks like `mise start`, `mise test`, and `mise check`. See [Your First Code Contribution](/CONTRIBUTING.md#your-first-code-contribution) for the full workflow. If you prefer not to use mise, `./glimpse-tty` still bootstraps itself.
 
 Read [Your First Code Contribution](/CONTRIBUTING.md#your-first-code-contribution) for more information on making a PR.

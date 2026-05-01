@@ -1,4 +1,4 @@
-import { EscapeType, cleanupInput, listenForInput, setupInput } from 'awrit-native';
+import { EscapeType, cleanupInput, listenForInput, setupInput } from 'glimpse-tty-native-rs';
 import { format } from 'node:util';
 import * as out from './output';
 
@@ -17,7 +17,7 @@ function main() {
   process.on('SIGABRT', cleanup);
   out.setup();
   setupInput();
-  process.stdout.write('Awrit Input Test\r\n');
+  process.stdout.write('Glimpse TTY Input Test\r\n');
   quitListening = listenForInput((evt) => {
     if (evt.type === EscapeType.Key && evt.code === 'c' && evt.modifiers.includes('ctrl')) {
       quitListening();

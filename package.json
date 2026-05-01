@@ -1,11 +1,12 @@
 {
-  "name": "awrit",
+  "name": "glimpse-tty",
   "version": "2.0.3",
   "description": "A full graphical web browser for Kitty terminal with mouse and keyboard support",
   "main": "index.js",
   "author": "Chase Colman",
+  "maintainer": "Tal Amuyal",
   "license": "BSD-3-Clause",
-  "homepage": "https://github.com/TalAmuyal/awrit",
+  "homepage": "https://github.com/TalAmuyal/glimpse-tty",
   "engines": {
     "node": ">=22.11.0"
   },
@@ -15,14 +16,14 @@
     "lint": "biome lint ./src",
     "lint-fix": "biome lint --write ./src",
     "lint-fix-unsafe": "biome lint --write --unsafe ./src",
-    "start": "echo 'You should run using `./awrit` or use the installer to install awrit' && exit 1",
+    "start": "echo 'You should run using `./glimpse-tty` or use the installer to install glimpse-tty' && exit 1",
     "input-test": "bun run ./src/tty/inputTest.ts",
     "gfx-test": "bun run ./src/tty/graphicsTest.ts",
-    "bump-crossterm": "git subtree pull --prefix=awrit-native-rs/crates/crossterm --squash https://github.com/crossterm-rs/crossterm master",
+    "bump-crossterm": "git subtree pull --prefix=glimpse-tty-native-rs/crates/crossterm --squash https://github.com/crossterm-rs/crossterm master",
     "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "awrit-native-rs": "./awrit-native-rs",
+    "glimpse-tty-native-rs": "./glimpse-tty-native-rs",
     "dompurify": "^3.4.1",
     "electron": "^41.3.0",
     "electron-chrome-context-menu": "^1.1.0",
@@ -42,7 +43,7 @@
     "@types/sinonjs__fake-timers": "^8.1.5",
     "typescript": "^5.9.2"
   },
-  "trustedDependencies": ["@biomejs/biome", "@tailwindcss/oxide", "awrit-native-rs", "core-js", "electron", "esbuild"],
+  "trustedDependencies": ["@biomejs/biome", "@tailwindcss/oxide", "glimpse-tty-native-rs", "core-js", "electron", "esbuild"],
   "patchedDependencies": {
     "lru-cache@5.1.1": "patches/lru-cache@5.1.1.patch"
   }

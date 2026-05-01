@@ -1,4 +1,4 @@
-import type { KeyEvent, TermEvent } from 'awrit-native-rs';
+import type { KeyEvent, TermEvent } from 'glimpse-tty-native-rs';
 import type { WindowView } from './windows';
 
 const isMac = process.platform === 'darwin';

@@ -90,10 +90,10 @@ export interface SupportedFeatures {
   compositeFrame: boolean
 }
 
-/** Disable previously enabled features for the terminal that are necessary for Awrit */
+/** Disable previously enabled features for the terminal that are necessary for Glimpse TTY */
 export declare function termDisableFeatures(features: SupportedFeatures): void
 
-/** Enable features for the terminal that are necessary for Awrit */
+/** Enable features for the terminal that are necessary for Glimpse TTY */
 export declare function termEnableFeatures(): SupportedFeatures
 
 export interface TermEscape {
