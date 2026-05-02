@@ -24,23 +24,23 @@
   },
   "dependencies": {
     "glimpse-tty-native-rs": "./glimpse-tty-native-rs",
-    "dompurify": "^3.4.1",
     "electron": "^41.3.0",
     "electron-chrome-context-menu": "^1.1.0",
     "electron-chrome-extensions": "^4.9.0",
-    "electron-chrome-web-store": "^0.13.0",
-    "highlight.js": "^11.11.1",
-    "marked": "^18.0.2",
-    "marked-alert": "^2.1.2",
-    "marked-footnote": "^1.4.0",
-    "marked-gfm-heading-id": "^4.1.4",
-    "mermaid": "^11.14.0"
+    "electron-chrome-web-store": "^0.13.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",
     "@sinonjs/fake-timers": "^14.0.0",
     "@types/node": "^24.3.0",
     "@types/sinonjs__fake-timers": "^8.1.5",
+    "dompurify": "^3.4.1",
+    "highlight.js": "^11.11.1",
+    "marked": "^18.0.2",
+    "marked-alert": "^2.1.2",
+    "marked-footnote": "^1.4.0",
+    "marked-gfm-heading-id": "^4.1.4",
+    "mermaid": "^11.14.0",
     "typescript": "^5.9.2"
   },
   "trustedDependencies": ["@biomejs/biome", "@tailwindcss/oxide", "glimpse-tty-native-rs", "core-js", "electron", "esbuild"],

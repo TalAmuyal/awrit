@@ -80,10 +80,21 @@ run = "bun run make:debug"
 dir = "{{config_root}}/glimpse-tty-native-rs"
 depends = ["setup"]
 
+[tasks.pack]
+description = "Build a relocatable, self-contained tar.gz distribution under ./build/."
+run = "./scripts/pack.sh"
+depends = ["setup"]
+
+[tasks.release]
+description = "Tag and release a new version. Optional arg: explicit semver (defaults to package.json version)."
+run = "./scripts/release.sh"
+depends = ["setup"]
+
 [tasks.clean]
 description = "Remove dependency and build artifacts (keeps the ./.bun sandbox so ./glimpse-tty still works)."
 run = [
   "rm -rf node_modules",
+  "rm -rf build",
   "rm -rf glimpse-tty-native-rs/target",
   "rm -f glimpse-tty-native-rs/*.node",
   "rm -f glimpse-tty_error.txt",
@@ -94,6 +105,7 @@ description = "Full clean including the ./.bun sandbox. Next ./glimpse-tty or mi
 run = [
   "rm -rf node_modules",
   "rm -rf .bun",
+  "rm -rf build",
   "rm -rf glimpse-tty-native-rs/target",
   "rm -f glimpse-tty-native-rs/*.node",
   "rm -f glimpse-tty_error.txt",

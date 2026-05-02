@@ -1,9 +1,9 @@
 import { possibleOptions, options } from '../args';
-import { $ } from 'bun';
 import electronPath from 'electron';
-import { copyFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { getDisplayScale } from '../dpi';
+import { resolveVersion } from './version';
+import { buildIndex, buildMarkdownExtension } from '../../scripts/build';
 
 const { stdout } = process;
 
@@ -32,8 +32,10 @@ if (options.help) {
   process.exit(0);
 }
 
+const root = resolve(__dirname, '../../');
+
 if (options.version) {
-  const version = (await $`git rev-parse --short HEAD`.quiet()).text().trim();
+  const version = await resolveVersion(root);
   if (stdout.isTTY) {
     stdout.write(`${BOLD_GREEN}glimpse-tty${RESET} ${version}\n`);
   } else {
@@ -42,59 +44,12 @@ if (options.version) {
   process.exit(0);
 }
 
-const root = resolve(__dirname, '../../');
-await $`mkdir -p ${root}/dist`.nothrow().quiet();
-
-{
-  const { success } = await Bun.build({
-    entrypoints: [join(root, 'src/index.ts')],
-    outdir: join(root, 'dist'),
-    root: join(root, 'src'),
-    target: 'node',
-    format: 'cjs',
-    sourcemap: 'inline',
-    external: ['electron', 'glimpse-tty-native-rs', '*.node'],
-  });
-
-  if (!success) {
-    console.error('Failed to build');
-    process.exit(1);
-  }
-}
-
-// Bundle the markdown extension into dist/extensions/markdown/.
-// content.ts is a classic-script content_scripts entry (IIFE).
-// mermaid-loader.ts is dynamically imported from content.ts via
-// chrome.runtime.getURL + import(), so it must be ESM.
-{
-  const srcDir = join(root, 'default-extensions/markdown');
-  const outDir = join(root, 'dist/extensions/markdown');
-  await $`mkdir -p ${outDir}`.quiet();
-
-  const entrypoints: Array<{ file: string; format: 'iife' | 'esm' }> = [
-    { file: 'content.ts', format: 'iife' },
-    { file: 'mermaid-loader.ts', format: 'esm' },
-  ];
-
-  for (const { file, format } of entrypoints) {
-    // Minify both bundles: content.js loads on every .md page (parse time),
-    // mermaid-loader.js is ~3MB even minified (every byte counts when it does load).
-    // Skip sourcemaps — they bloat the bundles ~6x and aren't worth the cost
-    // for production payload. Rebuild without --minify to debug.
-    const { success } = await Bun.build({
-      entrypoints: [join(srcDir, file)],
-      outdir: outDir,
-      target: 'browser',
-      format,
-      minify: true,
-    });
-    if (!success) {
-      console.error(`Failed to build markdown extension: ${file}`);
-      process.exit(1);
-    }
-  }
-
-  copyFileSync(join(srcDir, 'manifest.json'), join(outDir, 'manifest.json'));
+try {
+  await buildIndex(root);
+  await buildMarkdownExtension(root);
+} catch (e) {
+  console.error((e as Error).message);
+  process.exit(1);
 }
 
 const args = [

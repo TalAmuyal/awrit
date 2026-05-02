@@ -15,6 +15,7 @@ import { options } from './args';
 import { features } from './features';
 import { clearPlacements } from './tty/kittyGraphics';
 import { loadKeyBindings, type KeyBindingAction } from './keybindings';
+import { ROOT_DIR } from './root';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -77,7 +78,7 @@ if (!fs.existsSync(CONFIG_PATH_RESOLVED)) {
     fs.mkdirSync(path.dirname(CONFIG_PATH_RESOLVED), { recursive: true });
     fs.copyFileSync(oldConfigPath, CONFIG_PATH_RESOLVED);
   } else {
-    const templatePath = path.resolve(__dirname, '../config.example.js');
+    const templatePath = path.join(ROOT_DIR, 'config.example.js');
     fs.mkdirSync(path.dirname(CONFIG_PATH_RESOLVED), { recursive: true });
     fs.copyFileSync(templatePath, CONFIG_PATH_RESOLVED);
   }
