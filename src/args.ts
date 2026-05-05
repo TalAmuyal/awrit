@@ -38,6 +38,7 @@ export const possibleOptions = {
   'no-paint': { short: 'n', description: 'Disable painting' },
   transparent: { short: 't', description: 'Make the window transparent' },
   'debug-paint': { short: 'p', description: 'Debug paint' },
+  'ctrl-c-copy': { short: 'c', description: 'Ctrl-C copies selection instead of exiting' },
 } as const;
 
 export type Option = keyof typeof possibleOptions;

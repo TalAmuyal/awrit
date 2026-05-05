@@ -104,23 +104,28 @@ export function loadKeyBindings(config: { keybindings: Record<string, KeyBinding
   }
   pendingAction = null;
 
-  // Add new bindings
   for (const [binding, action] of Object.entries(config.keybindings)) {
-    const keys = parseKeyBinding(binding);
-    const firstKey = keys[0];
-
-    if (!bindings.has(firstKey)) {
-      bindings.set(firstKey, []);
-    }
-
-    const keyBindings = bindings.get(firstKey);
-    if (keyBindings) {
-      keyBindings.push({
-        keys,
-        action,
-      });
-    }
+    setKeyBinding(binding, action);
   }
+}
+
+export function setKeyBinding(binding: string, action: KeyBindingAction) {
+  const keys = parseKeyBinding(binding);
+  const firstKey = keys[0];
+
+  if (!bindings.has(firstKey)) {
+    bindings.set(firstKey, []);
+  }
+
+  const keyBindings = bindings.get(firstKey)!;
+  const existingIndex = keyBindings.findIndex(
+    (b) => b.keys.length === keys.length && b.keys.every((k, i) => k === keys[i]),
+  );
+  if (existingIndex !== -1) {
+    keyBindings.splice(existingIndex, 1);
+  }
+
+  keyBindings.push({ keys, action });
 }
 
 /**

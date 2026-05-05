@@ -14,7 +14,7 @@ import { console_ } from './console';
 import { options } from './args';
 import { features } from './features';
 import { clearPlacements } from './tty/kittyGraphics';
-import { loadKeyBindings, type KeyBindingAction } from './keybindings';
+import { loadKeyBindings, setKeyBinding, type KeyBindingAction } from './keybindings';
 import { ROOT_DIR } from './root';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -69,6 +69,15 @@ function loadConfig(config: UserConfig) {
   }
 }
 
+function applyConfig(config: UserConfig) {
+  loadConfig(config);
+  if (options['ctrl-c-copy']) {
+    setKeyBinding('<C-c>', ({ view }) => {
+      view?.focusedContent.copy();
+    });
+  }
+}
+
 const xdgConfigHome = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
 const CONFIG_PATH_RESOLVED = path.join(xdgConfigHome, 'glimpse-tty', 'config.js');
 
@@ -84,7 +93,7 @@ if (!fs.existsSync(CONFIG_PATH_RESOLVED)) {
   }
 }
 
-loadConfig(require(CONFIG_PATH_RESOLVED));
+applyConfig(require(CONFIG_PATH_RESOLVED));
 
 fs.watchFile(CONFIG_PATH_RESOLVED, { interval: 200 }, (curr, prev) => {
   if (curr.mtime <= prev.mtime) return;
@@ -93,12 +102,12 @@ fs.watchFile(CONFIG_PATH_RESOLVED, { interval: 200 }, (curr, prev) => {
 
   try {
     const newConfig = require(CONFIG_PATH_RESOLVED);
-    loadConfig(newConfig);
+    applyConfig(newConfig);
   } catch (e) {
     console_.error('Error loading config:', e);
     // Restore old config if new one fails
     try {
-      loadConfig(oldConfig);
+      applyConfig(oldConfig);
     } catch (e) {
       console_.error('Error restoring old config:', e);
     }
