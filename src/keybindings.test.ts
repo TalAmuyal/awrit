@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach } from 'bun:test';
-import { loadKeyBindings, handleEvent } from './keybindings';
+import { loadKeyBindings, handleEvent, setKeyBinding } from './keybindings';
 import type { TermEvent } from 'glimpse-tty-native-rs';
 import { fakeTimers } from './fake-timers.test';
 
@@ -317,5 +317,102 @@ describe('Keybindings System', () => {
     // Advance timers - should not trigger the menu since we started a new sequence
     await clock.tickAsync(500);
     expect(triggered).toBe('save');
+  });
+
+  describe('setKeyBinding', () => {
+    test('override existing binding', () => {
+      let triggered = '';
+      loadKeyBindings({
+        keybindings: {
+          '<C-c>': () => { triggered = 'original'; },
+        },
+      });
+
+      setKeyBinding('<C-c>', () => { triggered = 'override'; });
+
+      const event: TermEvent = {
+        eventType: 'key',
+        keyEvent: {
+          code: 'c',
+          modifiers: ['ctrl'],
+          down: true,
+          isCharEvent: false,
+        },
+      };
+      expect(handleEvent(event)).toBe(true);
+      expect(triggered).toBe('override');
+    });
+
+    test('add binding for unregistered key', () => {
+      let triggered = false;
+      loadKeyBindings({ keybindings: {} });
+
+      setKeyBinding('<C-x>', () => { triggered = true; });
+
+      const event: TermEvent = {
+        eventType: 'key',
+        keyEvent: {
+          code: 'x',
+          modifiers: ['ctrl'],
+          down: true,
+          isCharEvent: false,
+        },
+      };
+      expect(handleEvent(event)).toBe(true);
+      expect(triggered).toBe(true);
+    });
+
+    test('override persists after loadKeyBindings clears and reloads', () => {
+      let triggered = '';
+      const config = {
+        keybindings: {
+          '<C-c>': () => { triggered = 'config'; },
+        },
+      };
+
+      loadKeyBindings(config);
+      setKeyBinding('<C-c>', () => { triggered = 'override'; });
+
+      // Simulate hot-reload: loadKeyBindings clears all bindings
+      loadKeyBindings(config);
+      // Re-apply override (as applyCliOverrides would)
+      setKeyBinding('<C-c>', () => { triggered = 'override'; });
+
+      const event: TermEvent = {
+        eventType: 'key',
+        keyEvent: {
+          code: 'c',
+          modifiers: ['ctrl'],
+          down: true,
+          isCharEvent: false,
+        },
+      };
+      expect(handleEvent(event)).toBe(true);
+      expect(triggered).toBe('override');
+    });
+
+    test('does not affect other bindings', () => {
+      let triggered = '';
+      loadKeyBindings({
+        keybindings: {
+          '<C-c>': () => { triggered = 'ctrl-c'; },
+          '<C-s>': () => { triggered = 'ctrl-s'; },
+        },
+      });
+
+      setKeyBinding('<C-c>', () => { triggered = 'override'; });
+
+      const ctrlS: TermEvent = {
+        eventType: 'key',
+        keyEvent: {
+          code: 's',
+          modifiers: ['ctrl'],
+          down: true,
+          isCharEvent: false,
+        },
+      };
+      expect(handleEvent(ctrlS)).toBe(true);
+      expect(triggered).toBe('ctrl-s');
+    });
   });
 });

@@ -58,6 +58,8 @@ glimpse-tty ./README.md            # relative path resolved to absolute file:// 
 glimpse-tty ~/notes/doc.html       # ~ expanded to home directory
 ```
 
+Use `--ctrl-c-copy` (or `-c`) to make Ctrl-C copy the browser selection to the clipboard instead of exiting. You can still exit with Ctrl-D.
+
 For more options look at the help:
 
 ```bash

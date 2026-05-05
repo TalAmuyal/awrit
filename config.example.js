@@ -60,6 +60,9 @@ const userExtensions = [
  * }}
  */
 const keybindings = {
+  // Ctrl-C exits by default. Pass --ctrl-c-copy (or -c) to make it copy instead.
+  // You can also replace this binding directly:
+  // '<C-c>': ({ view }) => { view.focusedContent.copy(); },
   '<C-c>': () => {
     process.emit('SIGINT');
   },
